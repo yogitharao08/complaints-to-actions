@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Complaint to Action | Admin Analytics Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#b5c4ff",
+                        "surface-tint": "#1353d8",
+                        "outline-variant": "#c3c5d7",
+                        "surface": "#f9f9ff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "tertiary": "#005438",
+                        "on-tertiary-container": "#68f5b8",
+                        "surface-container-highest": "#dce2f3",
+                        "on-primary-fixed-variant": "#003dab",
+                        "on-primary-container": "#d4dcff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "outline": "#737686",
+                        "secondary-fixed": "#ffdbca",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d3daea",
+                        "secondary": "#9d4300",
+                        "on-surface-variant": "#434654",
+                        "on-secondary-fixed": "#341100",
+                        "on-background": "#151c27",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-surface": "#151c27",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "tertiary-container": "#006f4b",
+                        "on-secondary-fixed-variant": "#783200",
+                        "on-primary-fixed": "#00174d",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#1a56db",
+                        "on-secondary-container": "#5c2400",
+                        "primary": "#003fb1",
+                        "on-tertiary-fixed": "#002113",
+                        "inverse-primary": "#b5c4ff",
+                        "surface-container-low": "#f0f3ff",
+                        "surface-container-high": "#e2e8f8",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "surface-container": "#e7eefe",
+                        "surface-variant": "#dce2f3",
+                        "surface-bright": "#f9f9ff",
+                        "inverse-on-surface": "#ebf1ff",
+                        "secondary-container": "#fd761a",
+                        "inverse-surface": "#2a313d",
+                        "primary-fixed": "#dbe1ff",
+                        "secondary-fixed-dim": "#ffb690"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "margin-mobile": "16px",
+                        "lg": "40px",
+                        "sm": "16px",
+                        "gutter": "16px",
+                        "md": "24px",
+                        "margin-desktop": "48px",
+                        "max-width-content": "1280px",
+                        "base": "4px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-bold": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "status-label": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-bold": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .chart-container { position: relative; width: 100%; }
+        .bar-animate { transition: height 0.6s ease-out; }
+        .hover-lift:hover { transform: translateY(-2px); transition: transform 0.2s ease; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-72 fixed left-0 top-0 bg-surface-container-low flex flex-col py-md px-sm border-r border-outline-variant z-50">
+<div class="mb-xl px-xs">
+<h1 class="text-headline-md font-headline-md font-bold text-primary">Complaint to Action</h1>
+<p class="text-on-surface-variant text-label-bold">Admin Portal</p>
+</div>
+<nav class="flex-1 space-y-base">
+<a class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container-high transition-all text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container-high transition-all text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_late">assignment_late</span>
+<span class="font-label-bold">Grievances</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg bg-surface-container-high text-primary font-bold border-r-4 border-primary" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span class="font-label-bold">Analytics</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container-high transition-all text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="domain">domain</span>
+<span class="font-label-bold">Departments</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container-high transition-all text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-bold">Users</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-md space-y-base">
+<button class="w-full flex items-center justify-center gap-xs bg-primary text-on-primary py-md rounded-xl font-label-bold mb-md hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Report New Grievance
+            </button>
+<a class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container-high transition-all text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+<span class="font-label-bold">Security</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container-high transition-all text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="contact_support">contact_support</span>
+<span class="font-label-bold">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-72 min-h-screen">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 bg-surface z-40 sticky top-0">
+<div class="flex items-center gap-md">
+<h2 class="text-headline-md font-bold text-primary">Administrative Overview</h2>
+</div>
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-xs border-2 border-primary text-primary px-md py-xs rounded-xl font-label-bold hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+                    Export Report
+                </button>
+<div class="flex items-center gap-sm border-l border-outline-variant pl-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="settings">settings</span>
+<img alt="User profile" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional headshot of a middle-aged male administrator wearing a crisp white shirt and a dark navy blazer. He is smiling warmly against a soft-focus office background that matches a clean light-mode UI aesthetic. The lighting is balanced and professional, suggesting trust and institutional authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9R0jcvVmNaJp85mmv9trMUYaAEG6-52SubGwS29szd8qfnbj8oZrNC6VHVdF5aKL_igevmseB9ncpENFx37CQtVs85vImH2BBeK61m8xHgrDGvmyIsHC49vG4nDj3ZR7EVSfGA8yMeUU3Ggcw5TEhCz5ICROenJ_tvFlmyNxQbZWSuyH2NC10NXjFLqzz2t9yHXaCSBwG8A3MlNL50BpAYOtoRgNbMh7SiIQWAUwAEKjLPRoMhHMunz9BlZd_RiGbFpsLAUNU1Q"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-margin-desktop space-y-lg max-w-[1400px] mx-auto">
+<!-- Top Charts Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Total Complaints (Line Chart Visualization) -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant hover-lift">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="text-label-bold text-on-surface-variant">Total Complaints</h3>
+<p class="text-headline-lg text-primary">1,284</p>
+</div>
+<span class="text-on-tertiary-fixed-variant bg-tertiary-fixed px-xs py-[2px] rounded-full text-status-label">+12%</span>
+</div>
+<div class="h-24 flex items-end gap-[2px]">
+<!-- Simplified SVG Line Art for performance -->
+<svg class="w-full h-full" viewbox="0 0 200 60">
+<path d="M0 50 Q 25 45, 50 35 T 100 40 T 150 20 T 200 30" fill="none" stroke="#003fb1" stroke-width="3"></path>
+<path d="M0 50 Q 25 45, 50 35 T 100 40 T 150 20 T 200 30 V 60 H 0 Z" fill="url(#grad1)" opacity="0.2"></path>
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#003fb1;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#003fb1;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+<!-- Resolution Rate (Donut Gauge) -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant hover-lift flex flex-col items-center justify-center">
+<div class="text-center mb-base">
+<h3 class="text-label-bold text-on-surface-variant uppercase tracking-wider">Resolution Rate</h3>
+</div>
+<div class="relative w-32 h-32">
+<svg class="w-full h-full transform -rotate-90">
+<circle cx="64" cy="64" fill="none" r="56" stroke="#e2e8f8" stroke-width="8"></circle>
+<circle cx="64" cy="64" fill="none" r="56" stroke="#003fb1" stroke-dasharray="351.8" stroke-dashoffset="52.7" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-headline-md font-bold text-on-surface">85%</span>
+<span class="text-status-label text-on-surface-variant">Target: 90%</span>
+</div>
+</div>
+</div>
+<!-- Avg Response Time (Bar Chart) -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant hover-lift">
+<h3 class="text-label-bold text-on-surface-variant mb-md">Avg Response Time (Hrs)</h3>
+<div class="flex items-end justify-between h-32 gap-xs">
+<div class="w-full bg-primary/20 rounded-t-sm relative group h-[40%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-full bar-animate"></div>
+<span class="absolute -top-6 left-1/2 -translate-x-1/2 text-status-label opacity-0 group-hover:opacity-100 transition-opacity">4.2h</span>
+</div>
+<div class="w-full bg-primary/20 rounded-t-sm relative group h-[65%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-full bar-animate"></div>
+<span class="absolute -top-6 left-1/2 -translate-x-1/2 text-status-label opacity-0 group-hover:opacity-100 transition-opacity">6.8h</span>
+</div>
+<div class="w-full bg-primary/20 rounded-t-sm relative group h-[55%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-full bar-animate"></div>
+<span class="absolute -top-6 left-1/2 -translate-x-1/2 text-status-label opacity-0 group-hover:opacity-100 transition-opacity">5.1h</span>
+</div>
+<div class="w-full bg-primary/20 rounded-t-sm relative group h-[85%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-full bar-animate"></div>
+<span class="absolute -top-6 left-1/2 -translate-x-1/2 text-status-label opacity-0 group-hover:opacity-100 transition-opacity">9.2h</span>
+</div>
+<div class="w-full bg-primary/20 rounded-t-sm relative group h-[30%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-full bar-animate"></div>
+<span class="absolute -top-6 left-1/2 -translate-x-1/2 text-status-label opacity-0 group-hover:opacity-100 transition-opacity">2.9h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Mid Section: Performance & Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+<!-- Department Performance (Horizontal Bar Chart) -->
+<div class="lg:col-span-2 bg-surface-container-lowest p-md rounded-xl border border-outline-variant">
+<div class="flex justify-between items-center mb-xl">
+<h3 class="text-headline-md font-bold text-on-surface">Department Performance</h3>
+<button class="text-primary text-label-bold flex items-center hover:underline">
+                            View All <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="space-y-md">
+<div class="space-y-xs">
+<div class="flex justify-between text-label-bold">
+<span>Sanitation &amp; Waste</span>
+<span>92% Resolved</span>
+</div>
+<div class="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[92%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between text-label-bold">
+<span>Public Roads</span>
+<span>74% Resolved</span>
+</div>
+<div class="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[74%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between text-label-bold">
+<span>Water Supply</span>
+<span>88% Resolved</span>
+</div>
+<div class="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[88%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between text-label-bold">
+<span>Electricity Grid</span>
+<span>61% Resolved</span>
+</div>
+<div class="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[61%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Escalation Alerts Feed -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant">
+<h3 class="text-headline-md font-bold text-on-surface mb-md">Escalation Alerts</h3>
+<div class="space-y-md">
+<div class="p-sm bg-error-container/20 rounded-lg border-l-4 border-error flex gap-sm">
+<span class="material-symbols-outlined text-error" data-icon="warning" data-weight="fill">warning</span>
+<div>
+<p class="text-label-bold text-on-error-container">Critical: Water Leakage</p>
+<p class="text-status-label text-outline">Ward 4 • 2 hours ago</p>
+</div>
+</div>
+<div class="p-sm bg-secondary-container/10 rounded-lg border-l-4 border-secondary flex gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="timer">timer</span>
+<div>
+<p class="text-label-bold text-on-secondary-container">SLA Breach: Street Lights</p>
+<p class="text-status-label text-outline">Ward 12 • 5 hours ago</p>
+</div>
+</div>
+<div class="p-sm bg-surface-container-high rounded-lg border-l-4 border-outline flex gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="report">report</span>
+<div>
+<p class="text-label-bold text-on-surface-variant">Duplicate Case Detected</p>
+<p class="text-status-label text-outline">Road Repairs • 1 day ago</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-md text-primary text-label-bold py-sm border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors">
+                        Clear Alerts
+                    </button>
+</div>
+</div>
+<!-- Bottom Section: Map & Audit Log -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-md">
+<!-- Ward Distribution Heat Map -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant overflow-hidden">
+<div class="flex justify-between items-center mb-md">
+<h3 class="text-headline-md font-bold text-on-surface">Ward Distribution</h3>
+<div class="flex gap-xs">
+<span class="flex items-center gap-[4px] text-status-label"><div class="w-2 h-2 rounded-full bg-primary-fixed-dim"></div>Low</span>
+<span class="flex items-center gap-[4px] text-status-label"><div class="w-2 h-2 rounded-full bg-primary-container"></div>High</span>
+</div>
+</div>
+<div class="relative rounded-lg overflow-hidden h-[300px] bg-surface-container-high group">
+<!-- Simulated Map with Heat Spots -->
+<img class="w-full h-full object-cover opacity-60" data-alt="A stylized minimalist vector city map showing urban grids and ward boundaries in a monochromatic blue and gray theme. Several vibrant glowing heat-map spots in deep blue and indigo are overlaid on high-density areas, indicating complaint concentrations. The map looks technical and analytical, fitting for a civic technology administrator dashboard." data-location="Metropolis Central" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGFC-R4unVQMJMfPAd2vuU_tNPnCRwRMYLJrJOUBvz0qr3RkODnysTMO494Tzqe7AxEOM4oa8V_hg6oYz1hIee5xSeoduKGW4uC0UOcPn_dKVWyxHegZ--65foI_tGxYYxHZrLeQTxIMVTOefGkS66LGn28y9U6tQ15MYUQMPsTcENMsuRtmKXXXLkfiAqRE11EbKYB9Drqw7F3Jw5qJQIdBJTz__fPO38qcLGt0BlnV8G-ZqHsJhGUFzmd8UeDvYlaImlKQB7aQ"/>
+<!-- Heat Indicators -->
+<div class="absolute top-[20%] left-[30%] w-12 h-12 bg-primary rounded-full blur-xl opacity-60 animate-pulse"></div>
+<div class="absolute top-[50%] left-[60%] w-20 h-20 bg-primary-container rounded-full blur-2xl opacity-40"></div>
+<div class="absolute bottom-[30%] left-[45%] w-8 h-8 bg-surface-tint rounded-full blur-lg opacity-80"></div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-on-surface/10 backdrop-blur-[2px]">
+<button class="bg-surface-container-lowest text-primary px-md py-xs rounded-full font-label-bold shadow-lg">
+                                Expand Interactive Map
+                            </button>
+</div>
+</div>
+</div>
+<!-- System Audit Log -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant">
+<h3 class="text-headline-md font-bold text-on-surface mb-md">System Audit Log</h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-outline-variant">
+<th class="pb-sm font-label-bold text-on-surface-variant">Timestamp</th>
+<th class="pb-sm font-label-bold text-on-surface-variant">User</th>
+<th class="pb-sm font-label-bold text-on-surface-variant">Action</th>
+<th class="pb-sm font-label-bold text-on-surface-variant">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-sm text-status-label text-outline">Oct 24, 14:20</td>
+<td class="py-sm font-label-bold">admin_sharma</td>
+<td class="py-sm text-body-md">SLA Extension - #GRV-922</td>
+<td class="py-sm"><span class="bg-surface-container text-on-surface-variant px-xs py-1 rounded text-[10px] font-bold">LOGGED</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-sm text-status-label text-outline">Oct 24, 13:45</td>
+<td class="py-sm font-label-bold">dept_roads_head</td>
+<td class="py-sm text-body-md">Resolved - #GRV-104</td>
+<td class="py-sm"><span class="bg-tertiary-fixed text-on-tertiary-fixed-variant px-xs py-1 rounded text-[10px] font-bold">SUCCESS</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-sm text-status-label text-outline">Oct 24, 11:10</td>
+<td class="py-sm font-label-bold">system_root</td>
+<td class="py-sm text-body-md">Weekly Auto-Export</td>
+<td class="py-sm"><span class="bg-primary-fixed text-on-primary-fixed-variant px-xs py-1 rounded text-[10px] font-bold">SYSTEM</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-sm text-status-label text-outline">Oct 24, 09:30</td>
+<td class="py-sm font-label-bold">admin_sharma</td>
+<td class="py-sm text-body-md">Login Attempt</td>
+<td class="py-sm"><span class="bg-tertiary-fixed text-on-tertiary-fixed-variant px-xs py-1 rounded text-[10px] font-bold">SUCCESS</span></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-sm text-status-label text-outline">Oct 24, 08:15</td>
+<td class="py-sm font-label-bold">unknown_user</td>
+<td class="py-sm text-body-md">Failed Auth Attempt</td>
+<td class="py-sm"><span class="bg-error-container text-on-error-container px-xs py-1 rounded text-[10px] font-bold">DENIED</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for the sidebar navigation
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('mousedown', () => {
+                link.classList.add('scale-95');
+            });
+            link.addEventListener('mouseup', () => {
+                link.classList.remove('scale-95');
+            });
+            link.addEventListener('mouseleave', () => {
+                link.classList.remove('scale-95');
+            });
+        });
+
+        // Simulating chart data animation on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.bar-animate');
+            bars.forEach((bar, index) => {
+                const originalHeight = bar.parentElement.style.height;
+                bar.style.height = '0%';
+                setTimeout(() => {
+                    bar.style.height = '100%';
+                }, 100 + (index * 100));
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login - Complaint to Action</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface": "#0b1326",
+                "inverse-primary": "#005ac2",
+                "secondary-fixed": "#d4e4fa",
+                "on-tertiary": "#502400",
+                "on-background": "#dae2fd",
+                "secondary-container": "#39485a",
+                "on-secondary": "#233143",
+                "on-primary": "#002e6a",
+                "surface-container-high": "#222a3d",
+                "inverse-on-surface": "#283044",
+                "on-surface-variant": "#c2c6d6",
+                "tertiary-fixed-dim": "#ffb786",
+                "error": "#ffb4ab",
+                "tertiary-container": "#df7412",
+                "primary-container": "#4d8eff",
+                "primary": "#adc6ff",
+                "on-secondary-fixed": "#0d1c2d",
+                "tertiary": "#ffb786",
+                "outline-variant": "#424754",
+                "secondary-fixed-dim": "#b9c8de",
+                "primary-fixed-dim": "#adc6ff",
+                "outline": "#8c909f",
+                "inverse-surface": "#dae2fd",
+                "error-container": "#93000a",
+                "on-error-container": "#ffdad6",
+                "on-primary-container": "#00285d",
+                "on-surface": "#dae2fd",
+                "on-primary-fixed": "#001a42",
+                "tertiary-fixed": "#ffdcc6",
+                "on-secondary-container": "#a7b6cc",
+                "surface-tint": "#adc6ff",
+                "on-tertiary-fixed-variant": "#723600",
+                "on-error": "#690005",
+                "on-tertiary-fixed": "#311400",
+                "background": "#0b1326",
+                "surface-container": "#171f33",
+                "surface-dim": "#0b1326",
+                "on-tertiary-container": "#461f00",
+                "on-secondary-fixed-variant": "#39485a",
+                "surface-container-highest": "#2d3449",
+                "surface-variant": "#2d3449",
+                "primary-fixed": "#d8e2ff",
+                "secondary": "#b9c8de",
+                "surface-container-low": "#131b2e",
+                "surface-bright": "#31394d",
+                "surface-container-lowest": "#060e20",
+                "on-primary-fixed-variant": "#004395"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "xl": "32px",
+                "max-width": "1280px",
+                "margin-mobile": "16px",
+                "lg": "24px",
+                "gutter": "24px",
+                "md": "16px",
+                "xs": "4px",
+                "sm": "8px",
+                "margin-desktop": "64px",
+                "base": "4px"
+        },
+        "fontFamily": {
+                "body-md": ["Public Sans"],
+                "headline-lg-mobile": ["Hanken Grotesk"],
+                "label-sm": ["Public Sans"],
+                "headline-md": ["Hanken Grotesk"],
+                "headline-lg": ["Hanken Grotesk"],
+                "body-lg": ["Public Sans"],
+                "label-md": ["Public Sans"],
+                "body-sm": ["Public Sans"],
+                "display-lg": ["Hanken Grotesk"]
+        },
+        "fontSize": {
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "display-lg": ["56px", {"lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+        }
+      },
+    },
+  }
+</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-pattern {
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 0.8px, transparent 0.8px), radial-gradient(#1e293b 0.8px, #0f172a 0.8px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+        }
+        .login-card {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+        }
+        .role-card:hover {
+            border-color: #3b82f6;
+            background-color: #131b2e;
+        }
+        .role-card.active {
+            border-color: #3b82f6;
+            background-color: #171f33;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-pattern min-h-screen flex items-center justify-center p-md">
+<!-- Login Container -->
+<div class="w-full max-w-[1000px] bg-surface-container-lowest rounded-xl border border-outline-variant shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] login-card">
+<!-- Left: Visual/Branding Section -->
+<div class="hidden md:flex md:w-5/12 bg-[#003fb1] relative p-xl flex-col justify-between overflow-hidden">
+<div class="absolute inset-0 opacity-20">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-xs mb-lg">
+<span class="material-symbols-outlined text-white text-[40px]" data-icon="account_balance">account_balance</span>
+<h1 class="font-headline-md text-headline-md text-white">Complaint to Action</h1>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-white mb-md">Bridging the gap between citizens and service.</h2>
+<p class="font-body-md text-body-md text-blue-100 opacity-90">An institutional platform for transparent grievance redressal and efficient municipal management.</p>
+</div>
+<div class="relative z-10 mt-auto">
+<div class="flex -space-x-xs overflow-hidden mb-sm">
+<img class="inline-block h-10 w-10 rounded-full ring-2 ring-[#003fb1]" data-alt="Official headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAX7cL85bV5DKaYzt6tOcV3SrtuxOOqWNOYZEIL7UI_EvUx4bQK_mxiH4V6-L0rl-5hb3t5UZK61s6TM_20tHw3G5vBgmnM9i317L43qEFbOO61qkBV_MxkS1uD1GRebLtWNtHUvO-x0_Ht7iQcrjgjlEGXebKPYlxZN9gYoVz3S19C3IXU5j7lqhkJqF0oEFgCaLXXjZQJBhErmJnjJKIEonp58_izEsf0IF3-I660EXgINX9zZEKgl7BneTmAP180clw8QXpew"/>
+<img class="inline-block h-10 w-10 rounded-full ring-2 ring-[#003fb1]" data-alt="Official headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX7nertdxMsgp0PtPGN99Nw-gGQd6Y7UtLUGUYvqq3pyo_HuO28cm5CmBc1dPQq1ipSZJ-1W2ZoS4mG5NzMM8HpeXuow3AsYjH1s2Z60w-ODuascfwrF5y7I3lbyzalV0DcspEdV9Y-qmNn_65yoMzp6D3s1ZdAgvF17ZCB6tLLPHC4zWgpRlXeS4CNPW4Hn4Cv8k8L3lKzcHeXkRd_-DoSaSOeAHUBSeEO89ft0tpU5jEo6NAtr59Yzm_ZxaXPCdj0eDyxCcp9w"/>
+<img class="inline-block h-10 w-10 rounded-full ring-2 ring-[#003fb1]" data-alt="Official headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7hRixu1UUP0hW5DyE_gNWw6vUVGL-1RIBbXYb64YnFga_gLk6lgE4ekTclJgEOLB8omY1ASWX2miv1EEmUlzEEX2yYY1IaFGMLKYs9EsMqWT8Aiwy-Zot8CXrH4AV4nsTCz0O6p7Kh-zVK00sjGbBxdsMuvhpIq3Jc0ZIy5dAMcngBYL80U5bBoAh3EiX0R_QYvMa9D_F8P0aP-jkgpjPQYEonAhFVXlTpqnudfN6uaKaoy3brvw1BeU8-bM7DrRSGbeeaaBUWQ"/>
+</div>
+<p class="font-label-md text-label-md text-blue-100">Joined by 10,000+ citizens today</p>
+</div>
+</div>
+<!-- Right: Form Section -->
+<div class="w-full md:w-7/12 p-md md:p-xl flex flex-col justify-center bg-surface-container-lowest">
+<div class="max-w-[440px] mx-auto w-full">
+<div class="mb-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-xs">Welcome Back</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Please select your role and enter your credentials to access the portal.</p>
+</div>
+<!-- Role Selection -->
+<div class="grid grid-cols-3 gap-xs mb-lg" id="roleSelector">
+<button class="role-card active flex flex-col items-center justify-center p-sm border border-outline-variant rounded-xl transition-all duration-200" id="role-citizen" onclick="selectRole('citizen')" type="button">
+<span class="material-symbols-outlined text-primary mb-xs" data-icon="person">person</span>
+<span class="font-label-md text-label-md text-on-surface">Citizen</span>
+</button>
+<button class="role-card flex flex-col items-center justify-center p-sm border border-outline-variant rounded-xl transition-all duration-200" id="role-officer" onclick="selectRole('officer')" type="button">
+<span class="material-symbols-outlined text-on-surface-variant mb-xs" data-icon="shield_person">shield_person</span>
+<span class="font-label-md text-label-md text-on-surface">Officer</span>
+</button>
+<button class="role-card flex flex-col items-center justify-center p-sm border border-outline-variant rounded-xl transition-all duration-200" id="role-admin" onclick="selectRole('admin')" type="button">
+<span class="material-symbols-outlined text-on-surface-variant mb-xs" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md text-on-surface">Admin</span>
+</button>
+</div>
+<!-- Login Form -->
+<form class="space-y-md" onsubmit="handleLogin(event)">
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface block" for="identifier" id="identifierLabel">Mobile Number or Citizen ID</label>
+<div class="relative">
+<input class="w-full px-md py-sm border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-surface-container-low text-on-surface transition-all placeholder:text-outline" id="identifier" name="identifier" placeholder="e.g. 9876543210" required="" type="text"/>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-on-surface block" for="password">Password / OTP</label>
+<a class="font-label-md text-label-md text-primary hover:underline transition-all" href="#">Forgot?</a>
+</div>
+<div class="relative">
+<input class="w-full px-md py-sm border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-surface-container-low text-on-surface transition-all placeholder:text-outline" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<input class="w-5 h-5 rounded border-outline-variant bg-surface-container-low text-primary focus:ring-primary" id="remember" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface-variant select-none cursor-pointer" for="remember">Remember me for 30 days</label>
+</div>
+<button class="w-full h-[48px] bg-primary-container text-on-primary-container font-label-md text-label-md rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-xs" type="submit">
+                        Login to Portal
+                        <span class="material-symbols-outlined text-[20px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<div class="mt-xl pt-md border-t border-outline-variant flex flex-col items-center gap-sm">
+<p class="font-body-md text-body-md text-on-surface-variant text-center">New to the platform?</p>
+<a class="w-full h-[48px] border-2 border-primary text-primary font-label-md text-label-md rounded-xl flex items-center justify-center hover:bg-surface-container-low transition-all" href="#">
+                        Register New Account
+                    </a>
+</div>
+</div>
+</div>
+</div>
+<!-- Micro-interaction and State script -->
+<script>
+        function selectRole(role) {
+            const roles = ['citizen', 'officer', 'admin'];
+            roles.forEach(r => {
+                const el = document.getElementById(`role-${r}`);
+                const icon = el.querySelector('.material-symbols-outlined');
+                el.classList.remove('active');
+                el.classList.add('border-outline-variant');
+                icon.classList.remove('text-primary');
+                icon.classList.add('text-on-surface-variant');
+            });
+
+            const activeEl = document.getElementById(`role-${role}`);
+            const activeIcon = activeEl.querySelector('.material-symbols-outlined');
+            activeEl.classList.add('active');
+            activeIcon.classList.remove('text-on-surface-variant');
+            activeIcon.classList.add('text-primary');
+
+            const label = document.getElementById('identifierLabel');
+            const input = document.getElementById('identifier');
+            
+            if (role === 'citizen') {
+                label.textContent = 'Mobile Number or Citizen ID';
+                input.placeholder = 'e.g. 9876543210';
+            } else if (role === 'officer') {
+                label.textContent = 'Officer ID / Badge Number';
+                input.placeholder = 'e.g. OFF-2024-882';
+            } else {
+                label.textContent = 'Admin Username';
+                input.placeholder = 'Enter system admin ID';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalContent = btn.innerHTML;
+            
+            btn.innerHTML = `<span class="animate-spin material-symbols-outlined" data-icon="progress_activity">progress_activity</span> Authenticating...`;
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+
+            setTimeout(() => {
+                alert('Login simulation complete. Role-based redirect would happen here.');
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }, 1500);
+        }
+
+        window.onload = () => selectRole('citizen');
+    </script>
+</body></html>

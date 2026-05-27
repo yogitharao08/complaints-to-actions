@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Officer Workspace | Complaint to Action</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-secondary": "#233143",
+                "surface": "#0b1326",
+                "outline": "#8c909f",
+                "inverse-primary": "#005ac2",
+                "surface-dim": "#0b1326",
+                "on-primary": "#002e6a",
+                "inverse-on-surface": "#283044",
+                "primary-fixed-dim": "#adc6ff",
+                "inverse-surface": "#dae2fd",
+                "surface-variant": "#2d3449",
+                "surface-bright": "#31394d",
+                "secondary": "#b9c8de",
+                "on-tertiary-fixed": "#311400",
+                "on-secondary-fixed": "#0d1c2d",
+                "secondary-fixed-dim": "#b9c8de",
+                "primary": "#adc6ff",
+                "on-secondary-fixed-variant": "#39485a",
+                "on-error": "#690005",
+                "on-background": "#dae2fd",
+                "on-error-container": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb786",
+                "surface-container-high": "#222a3d",
+                "on-secondary-container": "#a7b6cc",
+                "surface-tint": "#adc6ff",
+                "on-tertiary": "#502400",
+                "tertiary-fixed": "#ffdcc6",
+                "surface-container": "#171f33",
+                "on-primary-fixed": "#001a42",
+                "error": "#ffb4ab",
+                "background": "#0b1326",
+                "on-tertiary-container": "#461f00",
+                "on-primary-fixed-variant": "#004395",
+                "primary-container": "#4d8eff",
+                "error-container": "#93000a",
+                "on-surface-variant": "#c2c6d6",
+                "surface-container-highest": "#2d3449",
+                "on-primary-container": "#00285d",
+                "tertiary": "#ffb786",
+                "tertiary-container": "#df7412",
+                "surface-container-lowest": "#060e20",
+                "secondary-container": "#39485a",
+                "on-tertiary-fixed-variant": "#723600",
+                "secondary-fixed": "#d4e4fa",
+                "primary-fixed": "#d8e2ff",
+                "outline-variant": "#424754",
+                "on-surface": "#dae2fd",
+                "surface-container-low": "#131b2e"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "lg": "24px",
+                "margin-mobile": "16px",
+                "xl": "32px",
+                "margin-desktop": "64px",
+                "base": "4px",
+                "xs": "4px",
+                "max-width": "1280px",
+                "gutter": "24px",
+                "md": "16px",
+                "sm": "8px"
+        },
+        "fontFamily": {
+                "headline-lg-mobile": ["Hanken Grotesk"],
+                "body-lg": ["Public Sans"],
+                "label-sm": ["Public Sans"],
+                "body-sm": ["Public Sans"],
+                "label-md": ["Public Sans"],
+                "headline-md": ["Hanken Grotesk"],
+                "headline-lg": ["Hanken Grotesk"],
+                "body-md": ["Public Sans"],
+                "display-lg": ["Hanken Grotesk"]
+        },
+        "fontSize": {
+                "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "display-lg": ["56px", {"lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+        }
+      },
+    },
+  }
+</script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; background-color: #0b1326; color: #dae2fd; }
+        h1, h2, h3, h4 { font-family: 'Hanken Grotesk', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d3449; border-radius: 10px; }
+        .map-gradient { background: radial-gradient(circle at center, transparent 0%, rgba(11, 19, 38, 0.8) 100%); }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-72 fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant flex flex-col py-md px-sm z-50">
+<div class="mb-xl px-xs">
+<h1 class="text-headline-md font-bold text-primary">Complaint to Action</h1>
+<p class="text-label-md text-outline uppercase tracking-widest text-[10px] mt-1">Admin Portal</p>
+</div>
+<nav class="flex-grow space-y-xs">
+<a class="flex items-center gap-sm px-sm py-md transition-all text-primary font-bold border-r-4 border-primary bg-surface-container-high" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md transition-all text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">assignment_late</span>
+<span class="font-label-md">Grievances</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md transition-all text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md transition-all text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">domain</span>
+<span class="font-label-md">Departments</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md transition-all text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md">Users</span>
+</a>
+</nav>
+<div class="mt-auto space-y-xs border-t border-outline-variant pt-md">
+<a class="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">shield</span>
+<span class="font-label-md">Security</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-md">Support</span>
+</a>
+<div class="flex items-center gap-sm px-sm mt-md">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">SA</div>
+<div>
+<p class="text-label-md text-on-surface leading-tight">Admin User</p>
+<p class="text-[11px] text-outline">System Administrator</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-72 min-h-screen flex flex-col bg-surface">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 z-40 bg-surface-container-lowest border-b border-outline-variant/30 sticky top-0">
+<div class="flex items-center gap-md">
+<div class="relative group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary w-80 text-body-md text-on-surface placeholder:text-outline" placeholder="Search task ID or citizen..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm border-r border-outline-variant pr-md">
+<button class="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-sm">
+<button class="bg-primary text-on-primary px-md py-2 rounded-xl font-label-md flex items-center gap-xs hover:shadow-lg hover:bg-primary/90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        New Report
+                    </button>
+</div>
+</div>
+</header>
+<!-- Content Body -->
+<div class="p-margin-desktop space-y-lg max-w-[1600px] mx-auto w-full">
+<!-- Metric Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Assigned -->
+<div class="bg-surface-container p-md rounded-xl border border-outline-variant shadow-sm flex items-center justify-between hover:border-primary transition-colors group">
+<div>
+<p class="text-label-md text-outline uppercase tracking-wider mb-1">Assigned Tasks</p>
+<h2 class="text-headline-lg font-bold text-on-surface">24</h2>
+<div class="flex items-center gap-1 text-[12px] font-bold text-tertiary mt-2">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+12% from last week</span>
+</div>
+</div>
+<div class="w-14 h-14 bg-primary-container/20 rounded-full flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-[32px]">assignment_ind</span>
+</div>
+</div>
+<!-- In Progress -->
+<div class="bg-surface-container p-md rounded-xl border border-outline-variant shadow-sm flex items-center justify-between hover:border-secondary transition-colors group">
+<div>
+<p class="text-label-md text-outline uppercase tracking-wider mb-1">In Progress</p>
+<h2 class="text-headline-lg font-bold text-on-surface">08</h2>
+<div class="flex items-center gap-1 text-[12px] font-bold text-primary mt-2">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+<span>Stable processing rate</span>
+</div>
+</div>
+<div class="w-14 h-14 bg-secondary-container/20 rounded-full flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-[32px]">pending_actions</span>
+</div>
+</div>
+<!-- Overdue -->
+<div class="bg-surface-container p-md rounded-xl border border-outline-variant shadow-sm flex items-center justify-between hover:border-error transition-colors group">
+<div>
+<p class="text-label-md text-outline uppercase tracking-wider mb-1">Overdue Critical</p>
+<h2 class="text-headline-lg font-bold text-error">03</h2>
+<div class="flex items-center gap-1 text-[12px] font-bold text-error mt-2">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Action Required Immediately</span>
+</div>
+</div>
+<div class="w-14 h-14 bg-error-container/20 rounded-full flex items-center justify-center text-error group-hover:bg-error group-hover:text-on-error transition-all">
+<span class="material-symbols-outlined text-[32px]">alarm_on</span>
+</div>
+</div>
+</section>
+<!-- Main Workspace Area -->
+<div class="grid grid-cols-12 gap-lg">
+<!-- Filter Sidebar -->
+<aside class="col-span-3 space-y-md">
+<div class="bg-surface-container-low p-md rounded-xl border border-outline-variant">
+<h3 class="text-label-md text-on-surface mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                            Filter Workspace
+                        </h3>
+<div class="space-y-md">
+<div>
+<label class="text-label-md text-outline block mb-2">Priority</label>
+<div class="space-y-xs">
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="w-5 h-5 bg-surface-container border-outline-variant rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-body-md text-on-surface-variant group-hover:text-on-surface transition-colors">High Priority</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="w-5 h-5 bg-surface-container border-outline-variant rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-body-md text-on-surface-variant group-hover:text-on-surface transition-colors">Standard</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-5 h-5 bg-surface-container border-outline-variant rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-body-md text-on-surface-variant group-hover:text-on-surface transition-colors">Informational</span>
+</label>
+</div>
+</div>
+<hr class="border-outline-variant/30"/>
+<div>
+<label class="text-label-md text-outline block mb-2">Department</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-body-md text-on-surface focus:ring-2 focus:ring-primary">
+<option>Public Sanitation</option>
+<option>Urban Infrastructure</option>
+<option>Water Resources</option>
+<option>Public Safety</option>
+</select>
+</div>
+<button class="w-full py-2 bg-surface-container-highest text-on-surface-variant font-label-md rounded-lg border border-outline-variant hover:bg-outline-variant/20 hover:text-on-surface transition-all">
+                                Clear All Filters
+                            </button>
+</div>
+</div>
+<div class="bg-primary-container p-md rounded-xl text-on-primary-container relative overflow-hidden group shadow-lg">
+<div class="relative z-10">
+<p class="text-label-md uppercase tracking-tighter opacity-80 mb-1">Performance Goal</p>
+<h4 class="text-headline-md font-bold mb-2">85% Resolution</h4>
+<div class="w-full bg-on-primary-container/20 h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed h-full w-[72%]"></div>
+</div>
+<p class="text-[12px] mt-2 italic">You're 13% ahead of target!</p>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] opacity-10 group-hover:scale-110 transition-transform">verified</span>
+</div>
+</aside>
+<!-- Task Management Table / Map View -->
+<div class="col-span-9 bg-surface-container-low rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+<!-- Control Bar -->
+<div class="px-md py-sm border-b border-outline-variant bg-surface-container-highest/30 flex justify-between items-center">
+<div class="flex items-center gap-md">
+<h3 class="text-headline-md font-bold text-on-surface">Task Management</h3>
+<div class="flex bg-surface-container-highest p-1 rounded-lg">
+<button class="px-md py-1 rounded-md text-label-md bg-surface-container-lowest shadow-sm text-primary transition-all" id="listViewBtn">List</button>
+<button class="px-md py-1 rounded-md text-label-md text-outline hover:text-on-surface transition-all" id="mapViewBtn">Map</button>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<span class="text-label-md text-outline">Sort by:</span>
+<button class="flex items-center gap-xs text-body-md font-semibold text-primary hover:text-primary-fixed-dim transition-colors">
+                                SLA Deadline
+                                <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+<!-- Table View -->
+<div class="overflow-x-auto flex-grow custom-scrollbar" id="tableView">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-highest/20 border-b border-outline-variant">
+<th class="px-md py-4 text-label-md text-outline">Complaint ID</th>
+<th class="px-md py-4 text-label-md text-outline">SLA Deadline</th>
+<th class="px-md py-4 text-label-md text-outline">Category</th>
+<th class="px-md py-4 text-label-md text-outline">Location</th>
+<th class="px-md py-4 text-label-md text-outline text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-md py-4">
+<div class="flex flex-col">
+<span class="text-label-md text-on-surface font-bold">#CTA-8821</span>
+<span class="text-[11px] text-outline">Reported 2h ago</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs text-error font-bold text-[13px]">
+<span class="material-symbols-outlined text-[18px]">timer</span>
+<span class="timer-countdown" data-time="300">00:05:00</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[16px]">water_drop</span>
+</div>
+<span class="text-body-md text-on-surface-variant">Water Leak</span>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-body-md text-on-surface-variant">North Sector, Block G</span>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="bg-primary text-on-primary px-3 py-1.5 rounded-lg text-label-md hover:bg-primary/90 transition-all">Act Now</button>
+<button class="border border-outline text-outline px-3 py-1.5 rounded-lg text-label-md hover:border-primary hover:text-primary transition-all">Upload Proof</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-md py-4">
+<div class="flex flex-col">
+<span class="text-label-md text-on-surface font-bold">#CTA-8794</span>
+<span class="text-[11px] text-outline">Reported 5h ago</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs text-secondary font-bold text-[13px]">
+<span class="material-symbols-outlined text-[18px]">timer</span>
+<span class="timer-countdown" data-time="14400">04:00:00</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</div>
+<span class="text-body-md text-on-surface-variant">Sanitation</span>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-body-md text-on-surface-variant">Market Square, East</span>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="bg-primary text-on-primary px-3 py-1.5 rounded-lg text-label-md hover:bg-primary/90 transition-all">Act Now</button>
+<button class="border border-outline text-outline px-3 py-1.5 rounded-lg text-label-md hover:border-primary hover:text-primary transition-all">Upload Proof</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-md py-4">
+<div class="flex flex-col">
+<span class="text-label-md text-on-surface font-bold">#CTA-8755</span>
+<span class="text-[11px] text-outline">Reported 12h ago</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs text-tertiary font-bold text-[13px]">
+<span class="material-symbols-outlined text-[18px]">timer</span>
+<span class="timer-countdown" data-time="28800">08:00:00</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[16px]">electrical_services</span>
+</div>
+<span class="text-body-md text-on-surface-variant">Electricity</span>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-body-md text-on-surface-variant">Old Town Bridge</span>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="bg-primary text-on-primary px-3 py-1.5 rounded-lg text-label-md hover:bg-primary/90 transition-all">Act Now</button>
+<button class="border border-outline text-outline px-3 py-1.5 rounded-lg text-label-md hover:border-primary hover:text-primary transition-all">Upload Proof</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-high transition-colors group bg-error/5">
+<td class="px-md py-4">
+<div class="flex flex-col">
+<span class="text-label-md text-on-surface font-bold">#CTA-8640</span>
+<span class="text-[11px] text-outline">Reported 24h ago</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs text-error font-bold text-[13px]">
+<span class="material-symbols-outlined text-[18px]">report_problem</span>
+<span>EXPIRED</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-error-container/30 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[16px]">construction</span>
+</div>
+<span class="text-body-md text-on-surface-variant">Road Damage</span>
+</div>
+</td>
+<td class="px-md py-4">
+<span class="text-body-md text-on-surface-variant">Main Highway - Exit 4</span>
+</td>
+<td class="px-md py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="bg-error text-on-error px-3 py-1.5 rounded-lg text-label-md hover:bg-error/90 transition-all font-bold">ESCALATE</button>
+<button class="border border-error text-error px-3 py-1.5 rounded-lg text-label-md hover:bg-error/10 transition-all">View Proof</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Map View (Hidden by default) -->
+<div class="hidden flex-grow relative bg-surface-container-high h-[600px] overflow-hidden" id="mapView">
+<div class="absolute inset-0 bg-cover bg-center opacity-40 grayscale" data-alt="Dark city map view" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCk084c01WODfrAGz-MqNJuSwjnnkQuEu2nax9Xd2L2vQueuCYq2pQM47VCPT-ympmp2N8Akqj6wsXPGCa9jW6MXKvn9aHkA1pgysG1SYoScshAegtJtXifzKauQC7EWqDcBQjY3R2RRtPSGJiKK6HHJ6oUzuPuBOsOHeKZbsqFQGerV-HyoiHWN8j0Q9aVxCezSc0mJ9ww0uoI-MmGUYILCZ4R86aIv2uxY-eBbD_56Hzp3oqnmFRdRAnIaPKg6iZKIZRY_4OOeQ')"></div>
+<div class="absolute inset-0 map-gradient"></div>
+<!-- Map Pins -->
+<div class="absolute top-1/4 left-1/3 group cursor-pointer">
+<div class="w-10 h-10 bg-error text-on-error rounded-full flex items-center justify-center shadow-2xl animate-bounce border-2 border-surface">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div class="absolute top-12 left-0 bg-surface-container border border-outline-variant p-2 rounded-lg shadow-2xl hidden group-hover:block w-48 z-10">
+<p class="text-label-md text-on-surface font-bold">#CTA-8640</p>
+<p class="text-[11px] text-outline">Road Damage - Critical</p>
+</div>
+</div>
+<div class="absolute bottom-1/3 right-1/4 group cursor-pointer">
+<div class="w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg border-2 border-surface">
+<span class="material-symbols-outlined text-[16px]">water_drop</span>
+</div>
+</div>
+<div class="absolute top-1/2 left-1/2 group cursor-pointer">
+<div class="w-8 h-8 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-lg border-2 border-surface">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</div>
+</div>
+<!-- Map Controls -->
+<div class="absolute bottom-md right-md flex flex-col gap-2">
+<button class="w-10 h-10 bg-surface-container border border-outline-variant rounded-lg flex items-center justify-center shadow-md hover:bg-surface-container-high text-on-surface">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="w-10 h-10 bg-surface-container border border-outline-variant rounded-lg flex items-center justify-center shadow-md hover:bg-surface-container-high text-on-surface">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // View Toggle Logic
+        const listViewBtn = document.getElementById('listViewBtn');
+        const mapViewBtn = document.getElementById('mapViewBtn');
+        const tableView = document.getElementById('tableView');
+        const mapView = document.getElementById('mapView');
+
+        listViewBtn.addEventListener('click', () => {
+            listViewBtn.className = 'px-md py-1 rounded-md text-label-md bg-surface-container-lowest shadow-sm text-primary transition-all';
+            mapViewBtn.className = 'px-md py-1 rounded-md text-label-md text-outline hover:text-on-surface transition-all';
+            tableView.classList.remove('hidden');
+            mapView.classList.add('hidden');
+        });
+
+        mapViewBtn.addEventListener('click', () => {
+            mapViewBtn.className = 'px-md py-1 rounded-md text-label-md bg-surface-container-lowest shadow-sm text-primary transition-all';
+            listViewBtn.className = 'px-md py-1 rounded-md text-label-md text-outline hover:text-on-surface transition-all';
+            mapView.classList.remove('hidden');
+            tableView.classList.add('hidden');
+        });
+
+        // Timer Countdown Simulation
+        const timers = document.querySelectorAll('.timer-countdown');
+        timers.forEach(timer => {
+            let seconds = parseInt(timer.getAttribute('data-time'));
+            const interval = setInterval(() => {
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    timer.innerText = "EXPIRED";
+                    return;
+                }
+                seconds--;
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
+                timer.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }, 1000);
+        });
+
+        // Simple Card Hover Effect
+        document.querySelectorAll('.bg-surface-container').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'all 0.2s ease-out';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>

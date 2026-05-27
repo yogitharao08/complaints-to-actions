@@ -1,0 +1,15 @@
+{
+  "name": "complaint-to-action",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MERN civic grievance and resolution platform",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
