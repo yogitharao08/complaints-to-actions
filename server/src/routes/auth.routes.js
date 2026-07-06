@@ -22,7 +22,16 @@ function hashOtp(otp) {
 }
 
 function publicUser(user) {
-  return { id: user._id, name: user.name, email: user.email, role: user.role, departmentId: user.departmentId };
+  return {
+    id: user._id,
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    mobile: user.mobile,
+    address: user.address,
+    role: user.role,
+    departmentId: user.departmentId
+  };
 }
 
 function normalizeEmail(email) {
@@ -30,12 +39,12 @@ function normalizeEmail(email) {
 }
 
 router.post("/login", async (req, res) => {
-  const { identifier, password, role } = req.body;
+  const { identifier, password } = req.body;
   const normalized = String(identifier || "").toLowerCase();
 
   const user = isDbConnected()
-    ? await User.findOne({ role, $or: [{ email: normalized }, { mobile: identifier }] })
-    : getStoredUsers().find((item) => item.role === role && (item.email === normalized || item.mobile === identifier));
+    ? await User.findOne({ $or: [{ email: normalized }, { mobile: identifier }] })
+    : getStoredUsers().find((item) => item.email === normalized || item.mobile === identifier);
 
   if (!user || !(await bcrypt.compare(password || "", user.passwordHash))) {
     return res.status(401).json({ message: "Invalid credentials" });
@@ -52,7 +61,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-  const { name, email, mobile, password } = req.body;
+  const { name, email, mobile, address, password } = req.body;
   const normalizedEmail = normalizeEmail(email);
 
   if (!name || !normalizedEmail || !password) {
@@ -75,6 +84,7 @@ router.post("/register", async (req, res) => {
       name,
       email: normalizedEmail,
       mobile,
+      address,
       role: "citizen",
       zoneIds: [],
       isActive: false,
@@ -104,6 +114,7 @@ router.post("/register", async (req, res) => {
     name,
     email: normalizedEmail,
     mobile,
+    address,
     role: "citizen",
     zoneIds: [],
     isActive: false,

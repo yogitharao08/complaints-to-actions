@@ -14,6 +14,7 @@ function publicUser(user) {
     name: user.name,
     email: user.email,
     mobile: user.mobile,
+    address: user.address,
     role: user.role,
     departmentId: user.departmentId,
     zoneIds: user.zoneIds || [],
@@ -31,7 +32,8 @@ router.patch("/me", requireAuth, async (req, res) => {
   const updates = {
     name: req.body.name,
     email: req.body.email ? String(req.body.email).toLowerCase() : undefined,
-    mobile: req.body.mobile
+    mobile: req.body.mobile,
+    address: req.body.address
   };
   Object.keys(updates).forEach((key) => updates[key] === undefined && delete updates[key]);
 
@@ -80,7 +82,7 @@ router.patch("/me/password", requireAuth, async (req, res) => {
 });
 
 router.post("/", requireAuth, allowRoles("admin"), async (req, res) => {
-  const { name, email, mobile, role, departmentId, password = "password" } = req.body;
+  const { name, email, mobile, address, role, departmentId, password = "password" } = req.body;
   const normalizedEmail = String(email || "").toLowerCase();
   const idPrefix = role === "officer" ? "officer" : role === "admin" ? "admin" : "user";
   const user = {
@@ -88,6 +90,7 @@ router.post("/", requireAuth, allowRoles("admin"), async (req, res) => {
     name,
     email: normalizedEmail,
     mobile,
+    address,
     role,
     departmentId: role === "officer" ? departmentId : undefined,
     zoneIds: [],
@@ -112,6 +115,7 @@ router.patch("/:id", requireAuth, allowRoles("admin"), async (req, res) => {
     name: req.body.name,
     email: req.body.email ? String(req.body.email).toLowerCase() : undefined,
     mobile: req.body.mobile,
+    address: req.body.address,
     role: req.body.role,
     departmentId: req.body.role === "officer" ? req.body.departmentId : undefined,
     isActive: req.body.isActive

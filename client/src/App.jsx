@@ -83,9 +83,7 @@ function LandingPage({ theme, onThemeChange }) {
         </button>
         <div className="landing-nav-actions">
           <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
-          <button className="link" onClick={() => navigate("/officer/login")} type="button">Officer</button>
-          <button className="link" onClick={() => navigate("/admin/login")} type="button">Admin</button>
-          <button className="primary" onClick={() => navigate("/login")} type="button">Citizen Login</button>
+          <button className="primary" onClick={() => navigate("/login")} type="button">Login</button>
         </div>
       </header>
 
@@ -99,7 +97,7 @@ function LandingPage({ theme, onThemeChange }) {
           </p>
           <div className="landing-actions">
             <button className="primary" onClick={() => navigate("/login")} type="button">File a Complaint <ArrowRight size={18} /></button>
-            <button className="outline" onClick={() => navigate("/admin/login")} type="button">Open Admin Portal</button>
+            <button className="outline" onClick={() => navigate("/login")} type="button">Open Portal</button>
           </div>
         </div>
         <div className="landing-panel" aria-label="Complaint workflow preview">
@@ -153,19 +151,19 @@ function LandingPage({ theme, onThemeChange }) {
           <UserRound size={24} />
           <h3>Citizen Portal</h3>
           <p>Create complaints, view timelines, see officer messages, preview proof, reopen unresolved work, and manage profile details.</p>
-          <button className="soft" onClick={() => navigate("/login")} type="button">Citizen Login</button>
+          <button className="soft" onClick={() => navigate("/login")} type="button">Login</button>
         </article>
         <article>
           <ShieldCheck size={24} />
           <h3>Officer Portal</h3>
           <p>Department officers see only their assigned department complaints, update statuses, add notes, and upload resolution proof.</p>
-          <button className="soft" onClick={() => navigate("/officer/login")} type="button">Officer Login</button>
+          <button className="soft" onClick={() => navigate("/login")} type="button">Login</button>
         </article>
         <article>
           <Building2 size={24} />
           <h3>Admin Portal</h3>
           <p>Admins manage users and departments, reassign complaints, view pending and resolved work, and export reports.</p>
-          <button className="soft" onClick={() => navigate("/admin/login")} type="button">Admin Login</button>
+          <button className="soft" onClick={() => navigate("/login")} type="button">Login</button>
         </article>
       </section>
     </main>
@@ -176,9 +174,8 @@ function StatusChip({ status = "Submitted" }) {
   return <span className={`status status-${status.toLowerCase().replace(/\s/g, "-")}`}>{status}</span>;
 }
 
-function LoginPage({ setUser, fixedRole = "citizen", theme, onThemeChange }) {
-  const [role, setRole] = useState(fixedRole);
-  const [identifier, setIdentifier] = useState(fixedRole === "admin" ? "admin@cta.test" : fixedRole === "officer" ? "roads@cta.test" : "citizen@cta.test");
+function LoginPage({ setUser, theme, onThemeChange }) {
+  const [identifier, setIdentifier] = useState("citizen@cta.test");
   const [password, setPassword] = useState("password");
   const [creating, setCreating] = useState(false);
   const [newAccount, setNewAccount] = useState({ name: "", email: "", password: "", role: "citizen" });
@@ -187,35 +184,11 @@ function LoginPage({ setUser, fixedRole = "citizen", theme, onThemeChange }) {
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
-  // Reset form when role prop changes
-  useEffect(() => {
-    setRole(fixedRole);
-    setIdentifier(fixedRole === "admin" ? "admin@cta.test" : fixedRole === "officer" ? "roads@cta.test" : "citizen@cta.test");
-    setPassword("password");
-    setCreating(false);
-    setNewAccount({ name: "", email: "", password: "", role: "citizen" });
-    setRegistrationOtp("");
-    setOtpSent(false);
-  }, [fixedRole]);
-
-  const roles = {
-    citizen: ["Citizen", "citizen@cta.test", UserRound],
-    officer: ["Officer", "roads@cta.test", ShieldCheck],
-    admin: ["Admin", "admin@cta.test", Building2]
-  };
-
-  const officerAccounts = [
-    ["Roads Officer", "roads@cta.test"],
-    ["Water Officer", "water@cta.test"],
-    ["Sanitation Officer", "sanitation@cta.test"],
-    ["Electricity Officer", "electricity@cta.test"]
-  ];
-
   async function submit(event) {
     event.preventDefault();
     setBusy(true);
     try {
-      const signedIn = await login(identifier, password, role);
+      const signedIn = await login(identifier, password);
       setUser(signedIn);
       navigate(`/${signedIn.role}`);
     } catch (_error) {
@@ -230,24 +203,13 @@ function LoginPage({ setUser, fixedRole = "citizen", theme, onThemeChange }) {
       <div className="login-theme-action"><ThemeToggle theme={theme} onThemeChange={onThemeChange} /></div>
       {!creating ? <form className="login-form simple-card" onSubmit={submit}>
         <div className="logo-row"><Building2 size={32} /><strong>Complaint to Action</strong></div>
-        <h2>{roles[fixedRole][0]} Login</h2>
-        <p>{fixedRole === "citizen" ? "Citizens can file and track complaints." : fixedRole === "officer" ? "Officers can manage assigned department complaints." : "Admins can manage complaints, users, and departments."}</p>
-        {role === "officer" && (
-          <label>Department Officer
-            <select value={identifier} onChange={(event) => setIdentifier(event.target.value)}>
-              {officerAccounts.map(([label, email]) => <option key={email} value={email}>{label}</option>)}
-            </select>
-          </label>
-        )}
-        <label>Email<input value={identifier} onChange={(event) => setIdentifier(event.target.value)} /></label>
+        <h2>Login</h2>
+        <label>Email or Mobile<input value={identifier} onChange={(event) => setIdentifier(event.target.value)} /></label>
         <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
         <button className="primary full" disabled={busy} type="submit">{busy ? "Logging in..." : "Login"}</button>
-        {fixedRole === "citizen" && <button className="outline full" type="button" onClick={() => setCreating(true)}>Create Account</button>}
+        <button className="outline full" type="button" onClick={() => setCreating(true)}>Create Account</button>
         <div className="login-links">
           <button className="link" type="button" onClick={() => navigate("/")}>Home</button>
-          {fixedRole !== "citizen" && <button className="link" type="button" onClick={() => navigate("/login")}>Citizen Login</button>}
-          {fixedRole !== "officer" && <button className="link" type="button" onClick={() => navigate("/officer/login")}>Officer Login</button>}
-          {fixedRole !== "admin" && <button className="link" type="button" onClick={() => navigate("/admin/login")}>Admin Login</button>}
         </div>
       </form> : <form className="login-form simple-card" onSubmit={async (event) => {
         event.preventDefault();
@@ -644,7 +606,7 @@ function ProfilePage({ user, role }) {
     name: user?.name || "",
     email: user?.email || "",
     mobile: user?.mobile || "",
-    address: "",
+    address: user?.address || "",
     departmentId: user?.departmentId || ""
   });
   const departmentNames = {
@@ -666,7 +628,7 @@ function ProfilePage({ user, role }) {
         name: saved.name || "",
         email: saved.email || "",
         mobile: saved.mobile || "",
-        address: "",
+        address: saved.address || "",
         departmentId: saved.departmentId || ""
       });
       setEditing(false);
@@ -1006,7 +968,7 @@ function UsersSimple() {
 
   return (
     <section className="table-card page-panel">
-      <div className="table-head"><h2>Users</h2><button className="primary" onClick={() => setEditing({ id: `new-user-${Date.now()}`, name: "", email: "", mobile: "", role: "Officer - Public Roads", departmentId: "dept-roads", scope: "Public Roads", status: "Active", password: "password" })}>Create User</button></div>
+      <div className="table-head"><h2>Users</h2><button className="primary" onClick={() => setEditing({ id: `new-user-${Date.now()}`, name: "", email: "", mobile: "", address: "", role: "Officer - Public Roads", departmentId: "dept-roads", scope: "Public Roads", status: "Active", password: "password" })}>Create User</button></div>
       <table>
         <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Scope</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>
@@ -1132,6 +1094,7 @@ function UserEditModal({ user, onClose, onSave }) {
           <label>Department<select value={form.departmentId || "dept-roads"} onChange={(event) => update("departmentId", event.target.value)}>{departmentChoices.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>
         </div>
         <label>Mobile<input value={form.mobile || ""} onChange={(event) => update("mobile", event.target.value)} /></label>
+        <label>Address / Zone<input value={form.address || ""} onChange={(event) => update("address", event.target.value)} /></label>
         <label>Temporary Password<input value={form.password || ""} onChange={(event) => update("password", event.target.value)} /></label>
         <label>Status<select value={form.status} onChange={(event) => update("status", event.target.value)}><option>Active</option><option>Disabled</option></select></label>
         <div className="button-row"><button className="outline" type="button" onClick={onClose}>Cancel</button><button className="primary" type="submit">Save User</button></div>
@@ -1176,6 +1139,7 @@ export default function App() {
   const [user, setUser] = useState(getStoredUser());
   const [theme, setTheme] = useState(() => localStorage.getItem("cta_theme") || "dark");
   const navigate = useNavigate();
+  const userHome = user ? `/${user.role}` : "/login";
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -1191,13 +1155,13 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage theme={theme} onThemeChange={setTheme} />} />
-      <Route path="/login" element={<LoginPage setUser={setUser} fixedRole="citizen" theme={theme} onThemeChange={setTheme} />} />
-      <Route path="/officer/login" element={<LoginPage setUser={setUser} fixedRole="officer" theme={theme} onThemeChange={setTheme} />} />
-      <Route path="/admin/login" element={<LoginPage setUser={setUser} fixedRole="admin" theme={theme} onThemeChange={setTheme} />} />
-      <Route path="/citizen" element={user ? <CitizenPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to="/login" />} />
-      <Route path="/officer" element={user ? <OfficerPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to="/officer/login" />} />
-      <Route path="/admin" element={user ? <AdminPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to="/admin/login" />} />
-      <Route path="*" element={<Navigate to={user ? `/${user.role}` : "/login"} />} />
+      <Route path="/login" element={user ? <Navigate to={userHome} /> : <LoginPage setUser={setUser} theme={theme} onThemeChange={setTheme} />} />
+      <Route path="/officer/login" element={<Navigate to="/login" />} />
+      <Route path="/admin/login" element={<Navigate to="/login" />} />
+      <Route path="/citizen" element={user?.role === "citizen" ? <CitizenPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
+      <Route path="/officer" element={user?.role === "officer" ? <OfficerPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
+      <Route path="/admin" element={user?.role === "admin" ? <AdminPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
+      <Route path="*" element={<Navigate to={userHome} />} />
     </Routes>
   );
 }

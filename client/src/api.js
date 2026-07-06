@@ -10,8 +10,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export async function login(identifier, password, role) {
-  const { data } = await api.post("/auth/login", { identifier, password, role });
+export async function login(identifier, password) {
+  const { data } = await api.post("/auth/login", { identifier, password });
   localStorage.setItem("cta_token", data.token);
   localStorage.setItem("cta_user", JSON.stringify(data.user));
   return data.user;
@@ -38,7 +38,8 @@ export async function updateCurrentUser(profile) {
   const { data } = await api.patch("/users/me", {
     name: profile.name,
     email: profile.email,
-    mobile: profile.mobile
+    mobile: profile.mobile,
+    address: profile.address
   });
   const current = getStoredUser() || {};
   const nextUser = { ...current, ...data };
@@ -131,6 +132,7 @@ export async function saveUserRecord(user) {
     name: user.name,
     email: user.email,
     mobile: user.mobile,
+    address: user.address,
     role: normalizeRole(user.role),
     departmentId: user.departmentId || departmentIdFromRole(user.role),
     isActive: user.status !== "Disabled",
@@ -206,6 +208,7 @@ function fromApiUser(item) {
     name: item.name,
     email: item.email,
     mobile: item.mobile || "",
+    address: item.address || "",
     role: displayRole(item.role, item.departmentId),
     departmentId: item.departmentId || "",
     scope: departmentScope(item.departmentId, item.role),
