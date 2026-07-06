@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -12,6 +12,8 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  MapPin,
+  MessageSquare,
   Moon,
   Plus,
   Search,
@@ -206,6 +208,20 @@ function LoginPage({ setUser, theme, onThemeChange }) {
         <h2>Login</h2>
         <label>Email or Mobile<input value={identifier} onChange={(event) => setIdentifier(event.target.value)} /></label>
         <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+        <div className="prefill-container">
+          <span className="prefill-label">Quick Prefill (Demo Accounts)</span>
+          <div className="prefill-buttons">
+            <button type="button" className="soft small" onClick={() => { setIdentifier("citizen@cta.test"); setPassword("password"); }}>Citizen</button>
+            <button type="button" className="soft small" onClick={() => { setIdentifier("admin@cta.test"); setPassword("password"); }}>Admin</button>
+          </div>
+          <span className="prefill-label" style={{ marginTop: "4px" }}>Officers by Department:</span>
+          <div className="prefill-buttons">
+            <button type="button" className="soft small" onClick={() => { setIdentifier("roads@cta.test"); setPassword("password"); }}>Roads</button>
+            <button type="button" className="soft small" onClick={() => { setIdentifier("water@cta.test"); setPassword("password"); }}>Water</button>
+            <button type="button" className="soft small" onClick={() => { setIdentifier("sanitation@cta.test"); setPassword("password"); }}>Sanitation</button>
+            <button type="button" className="soft small" onClick={() => { setIdentifier("electricity@cta.test"); setPassword("password"); }}>Electricity</button>
+          </div>
+        </div>
         <button className="primary full" disabled={busy} type="submit">{busy ? "Logging in..." : "Login"}</button>
         <button className="outline full" type="button" onClick={() => setCreating(true)}>Create Account</button>
         <div className="login-links">
@@ -270,12 +286,38 @@ function LoginPage({ setUser, theme, onThemeChange }) {
 function Shell({ role, active, setActive, children, onExit, theme, onThemeChange }) {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  const user = getStoredUser();
+  const userName = user?.name || "User";
+  const userInitials = userName.slice(0, 2).toUpperCase();
+
   const nav = role === "Citizen"
     ? [["Dashboard", LayoutDashboard], ["My Complaints", ClipboardList], ["File Complaint", Plus], ["Profile", UserRound]]
     : role === "Officer"
       ? [["Dashboard", LayoutDashboard], ["Assigned Complaints", ClipboardList], ["Profile", UserRound]]
       : [["Dashboard", LayoutDashboard], ["All Complaints", ClipboardList], ["Users", Users], ["Departments", Building2], ["Profile", UserRound]];
   const unreadCount = notifications.filter((item) => !item.isRead).length;
+
+  const headerNav = nav.filter(([label]) => label !== "Profile");
+
+  const notificationsRef = useRef(null);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     listNotifications().then(setNotifications).catch(() => setNotifications([]));
@@ -289,42 +331,134 @@ function Shell({ role, active, setActive, children, onExit, theme, onThemeChange
   }
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar simple-sidebar">
-        <div className="brand">
-          <h1>Complaint to Action</h1>
-          <p>{role} Portal</p>
-        </div>
-        <button className="notification-button" onClick={() => setShowNotifications(!showNotifications)} type="button">
-          <Bell size={16} />
-          <span>Notifications</span>
-          {unreadCount > 0 && <strong>{unreadCount}</strong>}
-        </button>
-        {showNotifications && (
-          <div className="notification-panel">
-            {notifications.length === 0 && <p>No notifications yet.</p>}
-            {notifications.slice(0, 5).map((note) => (
-              <button className={note.isRead ? "notification-item" : "notification-item unread"} key={note._id || note.id} onClick={() => readNotification(note)} type="button">
-                <strong>{note.title}</strong>
-                <span>{note.message}</span>
-              </button>
-            ))}
+    <div className="portal-container">
+      <header className="portal-header">
+        <div className="header-brand">
+          <Building2 size={24} />
+          <div>
+            <h1>Complaint to Action</h1>
+            <p>{role} Portal</p>
           </div>
-        )}
-        <nav>
-          {nav.map(([label, Icon]) => (
-            <button className={active === label ? "active side-link" : "side-link"} key={label} onClick={() => setActive(label)} type="button">
-              <Icon size={18} />
+        </div>
+
+        <nav className="header-nav">
+          {headerNav.map(([label, Icon]) => (
+            <button
+              className={active === label ? "active nav-link" : "nav-link"}
+              key={label}
+              onClick={() => setActive(label)}
+              type="button"
+            >
+              <Icon size={16} />
               <span>{label}</span>
             </button>
           ))}
         </nav>
-        <div className="side-bottom">
+
+        <div className="header-actions">
+          <div className="notification-wrapper" ref={notificationsRef}>
+            <button
+              className="action-btn notification-btn"
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                setShowProfileMenu(false);
+              }}
+              type="button"
+              aria-label="View notifications"
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+            </button>
+            {showNotifications && (
+              <div className="header-notification-panel">
+                <div className="panel-header">
+                  <h3>Notifications</h3>
+                </div>
+                <div className="panel-content">
+                  {notifications.length === 0 && <p className="empty-text">No notifications yet.</p>}
+                  {notifications.slice(0, 5).map((note) => (
+                    <button
+                      className={note.isRead ? "notification-item" : "notification-item unread"}
+                      key={note._id || note.id}
+                      onClick={() => {
+                        readNotification(note);
+                        setShowNotifications(false);
+                      }}
+                      type="button"
+                    >
+                      <strong>{note.title}</strong>
+                      <span>{note.message}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
-          <button className="side-link" onClick={onExit} type="button"><LogOut size={18} /> Logout</button>
+
+          <div className="profile-wrapper" ref={profileMenuRef}>
+            <button
+              className="profile-avatar-btn"
+              onClick={() => {
+                setShowProfileMenu(!showProfileMenu);
+                setShowNotifications(false);
+              }}
+              type="button"
+              aria-label="User profile menu"
+            >
+              {userInitials}
+            </button>
+            {showProfileMenu && (
+              <div className="profile-dropdown-menu">
+                <div className="profile-dropdown-header">
+                  <strong>{userName}</strong>
+                  <span>{role}</span>
+                </div>
+                <div className="profile-dropdown-divider"></div>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setActive("Profile");
+                    setShowProfileMenu(false);
+                  }}
+                  type="button"
+                >
+                  <UserRound size={14} />
+                  <span>View Profile</span>
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setActive("Profile");
+                    setShowProfileMenu(false);
+                  }}
+                  type="button"
+                >
+                  <FileText size={14} />
+                  <span>Edit Profile</span>
+                </button>
+                <div className="profile-dropdown-divider"></div>
+                <button
+                  className="dropdown-item logout"
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onExit();
+                  }}
+                  type="button"
+                >
+                  <LogOut size={14} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </aside>
-      <main className="content simple-content">{children}</main>
+      </header>
+
+      <div className="portal-body">
+        <main className="content simple-content">{children}</main>
+      </div>
     </div>
   );
 }
@@ -369,7 +503,7 @@ function useComplaintDetail() {
   return { selected, setSelected, openComplaint };
 }
 
-function CitizenPortal({ user, onExit, theme, onThemeChange }) {
+function CitizenPortal({ user, setUser, onExit, theme, onThemeChange }) {
   const [active, setActive] = useState("Dashboard");
   const { records, search, setSearch, loading, refresh } = useComplaintList();
   const { selected, setSelected, openComplaint } = useComplaintDetail();
@@ -396,7 +530,8 @@ function CitizenPortal({ user, onExit, theme, onThemeChange }) {
           <ComplaintTable rows={records} loading={loading} onView={openComplaint} />
         </>
       )}
-      {active === "Profile" && <ProfilePage user={user} role="Citizen" />}
+      {active === "Profile" && <ProfilePage user={user} role="Citizen" setActive={setActive} records={records} />}
+      {active === "EditProfile" && <EditProfilePage user={user} role="Citizen" setActive={setActive} onUserUpdate={setUser} />}
       {selected && <ComplaintDetail complaint={selected} onClose={() => setSelected(null)} onCitizenDecision={async (decision) => {
         if (decision.type === "close") {
           await updateComplaintStatus(selected.id, "Closed", "Citizen accepted the resolution.");
@@ -468,7 +603,7 @@ function ComplaintFormCard({ onCreated, existingComplaints = [] }) {
   );
 }
 
-function OfficerPortal({ user, onExit, theme, onThemeChange }) {
+function OfficerPortal({ user, setUser, onExit, theme, onThemeChange }) {
   const [active, setActive] = useState("Dashboard");
   const { records, search, setSearch, loading, refresh } = useComplaintList();
   const { selected, setSelected, openComplaint } = useComplaintDetail();
@@ -511,7 +646,8 @@ function OfficerPortal({ user, onExit, theme, onThemeChange }) {
           <ComplaintTable rows={visibleRecords} loading={loading} onView={openComplaint} onAction={setActionComplaint} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
         </>
       )}
-      {active === "Profile" && <ProfilePage user={user} role="Officer" />}
+      {active === "Profile" && <ProfilePage user={user} role="Officer" setActive={setActive} records={records} />}
+      {active === "EditProfile" && <EditProfilePage user={user} role="Officer" setActive={setActive} onUserUpdate={setUser} />}
       {selected && <ComplaintDetail complaint={selected} onClose={() => setSelected(null)} />}
       {actionComplaint && <OfficerAction complaint={actionComplaint} onClose={() => setActionComplaint(null)} onSaved={async () => {
         setActionComplaint(null);
@@ -521,7 +657,7 @@ function OfficerPortal({ user, onExit, theme, onThemeChange }) {
   );
 }
 
-function AdminPortal({ user, onExit, theme, onThemeChange }) {
+function AdminPortal({ user, setUser, onExit, theme, onThemeChange }) {
   const [active, setActive] = useState("Dashboard");
   const { records, search, setSearch, loading, refresh } = useComplaintList();
   const { selected, setSelected, openComplaint } = useComplaintDetail();
@@ -551,7 +687,8 @@ function AdminPortal({ user, onExit, theme, onThemeChange }) {
       )}
       {active === "Users" && <UsersSimple />}
       {active === "Departments" && <DepartmentsSimple records={records} />}
-      {active === "Profile" && <ProfilePage user={user} role="Admin" />}
+      {active === "Profile" && <ProfilePage user={user} role="Admin" setActive={setActive} records={records} />}
+      {active === "EditProfile" && <EditProfilePage user={user} role="Admin" setActive={setActive} onUserUpdate={setUser} />}
       {selected && <ComplaintDetail complaint={selected} onClose={() => setSelected(null)} onAdminReassign={async (assignment) => {
         await updateComplaintAssignment(selected.id, assignment.departmentId, assignment.assignedOfficerId, "Admin reassigned complaint.");
         setSelected(null);
@@ -598,45 +735,17 @@ function AnalyticsCharts({ report, records }) {
   );
 }
 
-function ProfilePage({ user, role }) {
-  const [editing, setEditing] = useState(false);
+function ProfilePage({ user, role, setActive, records }) {
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirm: "" });
-  const [profile, setProfile] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    mobile: user?.mobile || "",
-    address: user?.address || "",
-    departmentId: user?.departmentId || ""
-  });
+
   const departmentNames = {
     "dept-roads": "Public Roads",
     "dept-water": "Water Supply",
     "dept-sanitation": "Sanitation & Waste",
     "dept-electricity": "Electricity Grid"
   };
-
-  function update(field, value) {
-    setProfile({ ...profile, [field]: value });
-  }
-
-  async function saveProfile(event) {
-    event.preventDefault();
-    try {
-      const saved = await updateCurrentUser(profile);
-      setProfile({
-        name: saved.name || "",
-        email: saved.email || "",
-        mobile: saved.mobile || "",
-        address: saved.address || "",
-        departmentId: saved.departmentId || ""
-      });
-      setEditing(false);
-      alert("Profile saved to MongoDB.");
-    } catch (error) {
-      alert(error.response?.data?.message || "Profile could not be saved to MongoDB.");
-    }
-  }
 
   async function savePassword(event) {
     event.preventDefault();
@@ -654,9 +763,162 @@ function ProfilePage({ user, role }) {
     }
   }
 
+  // Calculate stats based on role and records
+  let stat1 = { label: "Filed", value: 0 };
+  let stat2 = { label: "Pending", value: 0 };
+  let stat3 = { label: "Resolved", value: 0 };
+
+  if (records) {
+    if (role === "Citizen") {
+      stat1 = { label: "Complaints", value: records.length };
+      stat2 = { label: "Pending", value: records.filter((item) => !["Resolved", "Closed"].includes(item.status)).length };
+      stat3 = { label: "Resolved", value: records.filter((item) => item.status === "Resolved").length };
+    } else if (role === "Officer") {
+      stat1 = { label: "Assigned", value: records.length };
+      stat2 = { label: "Pending", value: records.filter((item) => !["Resolved", "Closed"].includes(item.status)).length };
+      stat3 = { label: "Resolved", value: records.filter((item) => item.status === "Resolved").length };
+    } else if (role === "Admin") {
+      stat1 = { label: "Total complaints", value: records.length };
+      stat2 = { label: "Pending", value: records.filter((item) => !["Resolved", "Closed"].includes(item.status)).length };
+      stat3 = { label: "Resolved", value: records.filter((item) => ["Resolved", "Closed"].includes(item.status)).length };
+    }
+  }
+
+  const deptName = departmentNames[user?.departmentId] || (role === "Admin" ? "System Administration" : role === "Citizen" ? "Citizen Services" : "-");
+
+  return (
+    <div className="profile-container-premium">
+      <div className="profile-card-premium">
+        {/* Pink/Coral Gradient Banner */}
+        <div className="profile-banner-bg"></div>
+
+        {/* Top Left Connect/Edit and Top Right Message/Password Actions */}
+        <div className="profile-top-actions-wrapper">
+          <button className="profile-top-action" onClick={() => setActive("EditProfile")} type="button">
+            <UserRound size={16} />
+            <span>Edit Profile</span>
+          </button>
+          <button className="profile-top-action" onClick={() => setChangingPassword(!changingPassword)} type="button">
+            <MessageSquare size={16} />
+            <span>Password</span>
+          </button>
+        </div>
+
+        {/* Avatar */}
+        <div className="profile-avatar-container">
+          <div className="profile-avatar-premium">
+            {(user?.name || role).slice(0, 2).toUpperCase()}
+          </div>
+        </div>
+
+        {/* Profile Content */}
+        <div className="profile-content-premium">
+          <h2>{user?.name || `${role} User`}</h2>
+          <div className="location">
+            <MapPin size={14} style={{ marginRight: "4px", verticalAlign: "middle" }} />
+            <span>{user?.address || "No address provided"}</span>
+          </div>
+
+          <div className="description">
+            <p><strong>{role}</strong> &bull; {deptName}</p>
+            <p className="description-meta">{user?.email || "No email"} &bull; {user?.mobile || "No mobile"}</p>
+          </div>
+
+          {/* Stats Section */}
+          <div className="profile-stats-premium">
+            <div className="stat-item-premium">
+              <strong>{stat1.value}</strong>
+              <span>{stat1.label}</span>
+            </div>
+            <div className="stat-item-premium">
+              <strong>{stat2.value}</strong>
+              <span>{stat2.label}</span>
+            </div>
+            <div className="stat-item-premium">
+              <strong>{stat3.value}</strong>
+              <span>{stat3.label}</span>
+            </div>
+          </div>
+
+          {/* Expandable Details Container */}
+          {showDetails && (
+            <div className="info-grid profile-info" style={{ marginTop: "8px", width: "100%", textAlign: "left" }}>
+              <div><small>Name</small><p>{user?.name || "-"}</p></div>
+              <div><small>Email</small><p>{user?.email || "-"}</p></div>
+              <div><small>Mobile</small><p>{user?.mobile || "-"}</p></div>
+              <div><small>Address / Zone</small><p>{user?.address || "-"}</p></div>
+              <div><small>Role</small><p>{role}</p></div>
+              <div><small>Department</small><p>{deptName}</p></div>
+              <div><small>User ID</small><p>{user?.id || "-"}</p></div>
+              <div><small>Account Status</small><p>Active</p></div>
+            </div>
+          )}
+
+          {/* Pill Button "Show more" toggles details panel */}
+          <button className="profile-pill-button" onClick={() => setShowDetails(!showDetails)} type="button">
+            {showDetails ? "Show less" : "Show more"}
+          </button>
+        </div>
+      </div>
+
+      {changingPassword && (
+        <div className="password-card-premium">
+          <form className="profile-edit-form" onSubmit={savePassword}>
+            <h3>Change Password</h3>
+            <label>Current password<input required type="password" value={passwordForm.current} onChange={(event) => setPasswordForm({ ...passwordForm, current: event.target.value })} /></label>
+            <div className="form-grid">
+              <label>New password<input required type="password" value={passwordForm.next} onChange={(event) => setPasswordForm({ ...passwordForm, next: event.target.value })} /></label>
+              <label>Confirm password<input required type="password" value={passwordForm.confirm} onChange={(event) => setPasswordForm({ ...passwordForm, confirm: event.target.value })} /></label>
+            </div>
+            <button className="primary" type="submit">Update Password</button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EditProfilePage({ user, role, setActive, onUserUpdate }) {
+  const [profile, setProfile] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    mobile: user?.mobile || "",
+    address: user?.address || "",
+    departmentId: user?.departmentId || ""
+  });
+  const [saving, setSaving] = useState(false);
+
+  const departmentNames = {
+    "dept-roads": "Public Roads",
+    "dept-water": "Water Supply",
+    "dept-sanitation": "Sanitation & Waste",
+    "dept-electricity": "Electricity Grid"
+  };
+
+  function update(field, value) {
+    setProfile({ ...profile, [field]: value });
+  }
+
+  async function saveProfile(event) {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      const saved = await updateCurrentUser(profile);
+      if (onUserUpdate) onUserUpdate(saved);
+      alert("Profile saved to MongoDB.");
+      setActive("Profile");
+    } catch (error) {
+      alert(error.response?.data?.message || "Profile could not be saved to MongoDB.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <section className="table-card page-panel profile-card">
-      <div className="table-head"><h2>Profile</h2><div className="table-actions"><button className="primary" onClick={() => setEditing(!editing)}>{editing ? "Cancel Edit" : "Edit Profile"}</button><button className="outline" onClick={() => setChangingPassword(!changingPassword)}>{changingPassword ? "Cancel Password" : "Change Password"}</button></div></div>
+      <div className="table-head">
+        <h2>Edit Profile</h2>
+      </div>
       <div className="profile-grid">
         <div className="profile-avatar">{(profile.name || role).slice(0, 2).toUpperCase()}</div>
         <div>
@@ -664,42 +926,27 @@ function ProfilePage({ user, role }) {
           <p>{profile.email || "No email available"}</p>
         </div>
       </div>
-      {editing ? (
-        <form className="profile-edit-form" onSubmit={saveProfile}>
-          <div className="form-grid">
-            <label>Name<input value={profile.name} onChange={(event) => update("name", event.target.value)} /></label>
-            <label>Email<input value={profile.email} onChange={(event) => update("email", event.target.value)} /></label>
-          </div>
-          <div className="form-grid">
-            <label>Mobile<input value={profile.mobile} onChange={(event) => update("mobile", event.target.value)} placeholder="Enter mobile number" /></label>
-            <label>Address / Zone<input value={profile.address} onChange={(event) => update("address", event.target.value)} placeholder="Enter address or service zone" /></label>
-          </div>
-          {role === "Officer" && <label>Department<select value={profile.departmentId} onChange={(event) => update("departmentId", event.target.value)}>{Object.entries(departmentNames).map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>}
-          <div className="button-row"><button className="outline" type="button" onClick={() => setEditing(false)}>Cancel</button><button className="primary" type="submit">Save Profile</button></div>
-        </form>
-      ) : (
-        <div className="info-grid profile-info">
-          <div><small>Name</small><p>{profile.name || "-"}</p></div>
-          <div><small>Email</small><p>{profile.email || "-"}</p></div>
-          <div><small>Mobile</small><p>{profile.mobile || "-"}</p></div>
-          <div><small>Address / Zone</small><p>{profile.address || "-"}</p></div>
-          <div><small>Role</small><p>{role}</p></div>
-          <div><small>Department</small><p>{departmentNames[profile.departmentId] || (role === "Admin" ? "System Administration" : role === "Citizen" ? "Citizen Services" : "-")}</p></div>
-          <div><small>User ID</small><p>{user?.id || "-"}</p></div>
-          <div><small>Account Status</small><p>Active</p></div>
+      <form className="profile-edit-form" onSubmit={saveProfile}>
+        <div className="form-grid">
+          <label>Name<input required value={profile.name} onChange={(event) => update("name", event.target.value)} /></label>
+          <label>Email<input required value={profile.email} onChange={(event) => update("email", event.target.value)} /></label>
         </div>
-      )}
-      {changingPassword && (
-        <form className="profile-edit-form" onSubmit={savePassword}>
-          <h3>Change Password</h3>
-          <label>Current password<input type="password" value={passwordForm.current} onChange={(event) => setPasswordForm({ ...passwordForm, current: event.target.value })} /></label>
-          <div className="form-grid">
-            <label>New password<input type="password" value={passwordForm.next} onChange={(event) => setPasswordForm({ ...passwordForm, next: event.target.value })} /></label>
-            <label>Confirm password<input type="password" value={passwordForm.confirm} onChange={(event) => setPasswordForm({ ...passwordForm, confirm: event.target.value })} /></label>
-          </div>
-          <button className="primary" type="submit">Update Password</button>
-        </form>
-      )}
+        <div className="form-grid">
+          <label>Mobile<input value={profile.mobile} onChange={(event) => update("mobile", event.target.value)} placeholder="Enter mobile number" /></label>
+          <label>Address / Zone<input value={profile.address} onChange={(event) => update("address", event.target.value)} placeholder="Enter address or service zone" /></label>
+        </div>
+        {role === "Officer" && (
+          <label>Department
+            <select value={profile.departmentId} onChange={(event) => update("departmentId", event.target.value)}>
+              {Object.entries(departmentNames).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+            </select>
+          </label>
+        )}
+        <div className="button-row">
+          <button className="outline" type="button" onClick={() => setActive("Profile")}>Cancel</button>
+          <button className="primary" type="submit" disabled={saving}>{saving ? "Saving..." : "Save Profile"}</button>
+        </div>
+      </form>
     </section>
   );
 }
@@ -825,7 +1072,7 @@ function ComplaintDetail({ complaint, onClose, onCitizenDecision, onAdminReassig
         {onAdminReassign && (
           <div className="citizen-verification">
             <h3>Admin Reassignment</h3>
-            <label>Department / Officer<select value={assignment} onChange={(event) => setAssignment(event.target.value)}>{assignmentOptions.map(([departmentId,, label]) => <option key={departmentId} value={departmentId}>{label}</option>)}</select></label>
+            <label>Department / Officer<select value={assignment} onChange={(event) => setAssignment(event.target.value)}>{assignmentOptions.map(([departmentId, , label]) => <option key={departmentId} value={departmentId}>{label}</option>)}</select></label>
             <button className="primary" onClick={() => onAdminReassign({ departmentId: selectedAssignment[0], assignedOfficerId: selectedAssignment[1] })}>Reassign Complaint</button>
           </div>
         )}
@@ -1146,6 +1393,17 @@ export default function App() {
     localStorage.setItem("cta_theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      navigate("/login");
+    };
+    window.addEventListener("cta_unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("cta_unauthorized", handleUnauthorized);
+    };
+  }, [navigate]);
+
   function exit() {
     logout();
     setUser(null);
@@ -1158,9 +1416,9 @@ export default function App() {
       <Route path="/login" element={user ? <Navigate to={userHome} /> : <LoginPage setUser={setUser} theme={theme} onThemeChange={setTheme} />} />
       <Route path="/officer/login" element={<Navigate to="/login" />} />
       <Route path="/admin/login" element={<Navigate to="/login" />} />
-      <Route path="/citizen" element={user?.role === "citizen" ? <CitizenPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
-      <Route path="/officer" element={user?.role === "officer" ? <OfficerPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
-      <Route path="/admin" element={user?.role === "admin" ? <AdminPortal user={user} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
+      <Route path="/citizen" element={user?.role === "citizen" ? <CitizenPortal user={user} setUser={setUser} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
+      <Route path="/officer" element={user?.role === "officer" ? <OfficerPortal user={user} setUser={setUser} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
+      <Route path="/admin" element={user?.role === "admin" ? <AdminPortal user={user} setUser={setUser} onExit={exit} theme={theme} onThemeChange={setTheme} /> : <Navigate to={userHome} />} />
       <Route path="*" element={<Navigate to={userHome} />} />
     </Routes>
   );

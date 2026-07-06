@@ -1,7 +1,8 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  withCredentials: true
 });
 
 api.interceptors.request.use((config) => {
@@ -10,9 +11,80 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/login") &&
+      !originalRequest.url.includes("/auth/refresh") &&
+      !originalRequest.url.includes("/auth/register/verify")
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { data } = await axios.post(
+          `${api.defaults.baseURL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
+        
+        const newAccessToken = data.accessToken;
+        localStorage.setItem("cta_token", newAccessToken);
+        
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        processQueue(null, newAccessToken);
+        isRefreshing = false;
+        
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        isRefreshing = false;
+        
+        localStorage.removeItem("cta_token");
+        localStorage.removeItem("cta_user");
+        window.dispatchEvent(new Event("cta_unauthorized"));
+        
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
 export async function login(identifier, password) {
   const { data } = await api.post("/auth/login", { identifier, password });
-  localStorage.setItem("cta_token", data.token);
+  localStorage.setItem("cta_token", data.accessToken);
   localStorage.setItem("cta_user", JSON.stringify(data.user));
   return data.user;
 }
@@ -29,7 +101,7 @@ export async function registerLocalAccount(payload) {
 
 export async function verifyCitizenRegistration(email, otp) {
   const { data } = await api.post("/auth/register/verify", { email, otp });
-  localStorage.setItem("cta_token", data.token);
+  localStorage.setItem("cta_token", data.accessToken);
   localStorage.setItem("cta_user", JSON.stringify(data.user));
   return data.user;
 }
@@ -262,7 +334,12 @@ export function getStoredUser() {
   return raw ? JSON.parse(raw) : null;
 }
 
-export function logout() {
+export async function logout() {
   localStorage.removeItem("cta_token");
   localStorage.removeItem("cta_user");
+  try {
+    await api.post("/auth/logout");
+  } catch (error) {
+    console.error("Logout request failed:", error);
+  }
 }

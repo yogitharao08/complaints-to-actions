@@ -9,8 +9,12 @@ import { User } from "../models/User.js";
 
 const router = express.Router();
 
-function issueToken(user) {
-  return jwt.sign({ sub: user._id.toString(), role: user.role }, process.env.JWT_SECRET || "dev-secret", { expiresIn: "7d" });
+function issueAccessToken(user) {
+  return jwt.sign({ sub: user._id.toString(), role: user.role }, process.env.JWT_SECRET || "dev-secret", { expiresIn: "10m" });
+}
+
+function issueRefreshToken(user) {
+  return jwt.sign({ sub: user._id.toString() }, process.env.JWT_REFRESH_SECRET || "dev-refresh-secret", { expiresIn: "3d" });
 }
 
 function createOtp() {
@@ -54,8 +58,16 @@ router.post("/login", async (req, res) => {
   }
   if (user.isActive === false) return res.status(403).json({ message: "Account is disabled" });
 
+  res.cookie("cta_refresh_token", issueRefreshToken(user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/auth",
+    maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
+  });
+
   res.json({
-    token: issueToken(user),
+    accessToken: issueAccessToken(user),
     user: publicUser(user)
   });
 });
@@ -164,7 +176,14 @@ router.post("/register/verify", async (req, res) => {
       updatedAt: new Date().toISOString()
     };
     saveStoredUsers(users.map((item) => item.email === normalizedEmail ? verifiedUser : item));
-    return res.status(201).json({ token: issueToken(verifiedUser), user: publicUser(verifiedUser) });
+    res.cookie("cta_refresh_token", issueRefreshToken(verifiedUser), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/api/auth",
+      maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
+    });
+    return res.status(201).json({ accessToken: issueAccessToken(verifiedUser), user: publicUser(verifiedUser) });
   }
 
   const user = await User.findOne({ email: normalizedEmail });
@@ -180,7 +199,57 @@ router.post("/register/verify", async (req, res) => {
   user.emailOtpExpiresAt = undefined;
   await user.save();
 
-  res.status(201).json({ token: issueToken(user), user: publicUser(user) });
+  res.cookie("cta_refresh_token", issueRefreshToken(user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/auth",
+    maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
+  });
+  res.status(201).json({ accessToken: issueAccessToken(user), user: publicUser(user) });
+});
+
+router.post("/refresh", async (req, res) => {
+  const cookieHeader = req.headers.cookie || "";
+  const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+    const [key, val] = cookie.trim().split("=");
+    if (key) acc[key] = decodeURIComponent(val);
+    return acc;
+  }, {});
+  const refreshToken = cookies["cta_refresh_token"];
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token is missing" });
+  }
+
+  try {
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || "dev-refresh-secret");
+    const user = isDbConnected()
+      ? await User.findById(payload.sub)
+      : getStoredUsers().find((item) => item._id === payload.sub);
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid session" });
+    }
+    if (user.isActive === false) {
+      return res.status(403).json({ message: "Account is disabled" });
+    }
+
+    const accessToken = issueAccessToken(user);
+    res.json({ accessToken });
+  } catch (error) {
+    return res.status(401).json({ message: "Invalid or expired refresh token" });
+  }
+});
+
+router.post("/logout", (req, res) => {
+  res.clearCookie("cta_refresh_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/auth"
+  });
+  res.json({ message: "Logged out successfully" });
 });
 
 export default router;
