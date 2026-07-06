@@ -38,6 +38,7 @@ import {
   resetUserPassword,
   saveDepartmentRecord,
   saveUserRecord,
+  updateCurrentUser,
   updateComplaintAssignment,
   updateComplaintStatus,
   uploadFile,
@@ -636,19 +637,15 @@ function AnalyticsCharts({ report, records }) {
 }
 
 function ProfilePage({ user, role }) {
-  const storageKey = `cta_profile_${user?.id || role}`;
   const [editing, setEditing] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirm: "" });
-  const [profile, setProfile] = useState(() => {
-    const saved = localStorage.getItem(storageKey);
-    return saved ? JSON.parse(saved) : {
-      name: user?.name || "",
-      email: user?.email || "",
-      mobile: "",
-      address: "",
-      departmentId: user?.departmentId || ""
-    };
+  const [profile, setProfile] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    mobile: user?.mobile || "",
+    address: "",
+    departmentId: user?.departmentId || ""
   });
   const departmentNames = {
     "dept-roads": "Public Roads",
@@ -661,25 +658,37 @@ function ProfilePage({ user, role }) {
     setProfile({ ...profile, [field]: value });
   }
 
-  function saveProfile(event) {
+  async function saveProfile(event) {
     event.preventDefault();
-    localStorage.setItem(storageKey, JSON.stringify(profile));
-    setEditing(false);
+    try {
+      const saved = await updateCurrentUser(profile);
+      setProfile({
+        name: saved.name || "",
+        email: saved.email || "",
+        mobile: saved.mobile || "",
+        address: "",
+        departmentId: saved.departmentId || ""
+      });
+      setEditing(false);
+      alert("Profile saved to MongoDB.");
+    } catch (error) {
+      alert(error.response?.data?.message || "Profile could not be saved to MongoDB.");
+    }
   }
 
-  function savePassword(event) {
+  async function savePassword(event) {
     event.preventDefault();
     if (passwordForm.next !== passwordForm.confirm) {
       alert("New password and confirmation do not match.");
       return;
     }
     try {
-      changeLocalPassword(user, passwordForm.current, passwordForm.next);
+      await changeLocalPassword(user, passwordForm.current, passwordForm.next);
       setChangingPassword(false);
       setPasswordForm({ current: "", next: "", confirm: "" });
-      alert("Password changed.");
+      alert("Password changed in MongoDB.");
     } catch (error) {
-      alert(error.message);
+      alert(error.response?.data?.message || error.message);
     }
   }
 
@@ -953,42 +962,19 @@ function ProofPreview({ proof }) {
   return <div className="proof-link">{label || "Proof attached"}</div>;
 }
 
-const initialAdminUsers = [
-  { id: "user-citizen", name: "James Walker", email: "citizen@cta.test", role: "Citizen", scope: "Ward 4", status: "Active", password: "password" },
-  { id: "officer-roads", name: "Roads Officer", email: "roads@cta.test", role: "Officer - Public Roads", scope: "Public Roads", status: "Active", password: "password" },
-  { id: "officer-water", name: "Water Officer", email: "water@cta.test", role: "Officer - Water Supply", scope: "Water Supply", status: "Active", password: "password" },
-  { id: "officer-sanitation", name: "Sanitation Officer", email: "sanitation@cta.test", role: "Officer - Sanitation & Waste", scope: "Sanitation & Waste", status: "Active", password: "password" },
-  { id: "officer-electricity", name: "Electricity Officer", email: "electricity@cta.test", role: "Officer - Electricity Grid", scope: "Electricity Grid", status: "Active", password: "password" },
-  { id: "user-admin", name: "Admin User", email: "admin@cta.test", role: "Admin", scope: "System", status: "Active", password: "password" }
-];
-
-const initialDepartments = [
-  { id: "dept-roads", name: "Public Roads", description: "Potholes, road damage, sidewalks", coverage: "Ward 1, Ward 4", status: "Active" },
-  { id: "dept-water", name: "Water Supply", description: "Leaks, pressure and water quality", coverage: "Ward 2, Ward 7", status: "Active" },
-  { id: "dept-sanitation", name: "Sanitation & Waste", description: "Garbage, drainage and street cleaning", coverage: "Ward 3, Ward 8", status: "Active" },
-  { id: "dept-electricity", name: "Electricity Grid", description: "Street lights and electrical outages", coverage: "Ward 5, Ward 12", status: "Active" }
-];
-
-function readAdminStore(key, fallback) {
-  const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : fallback;
-}
-
 function UsersSimple() {
-  const [users, setUsers] = useState(() => readAdminStore("cta_admin_users", initialAdminUsers));
+  const [users, setUsers] = useState([]);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    listUsers().then((data) => {
-      setUsers(data);
-      localStorage.setItem("cta_admin_users", JSON.stringify(data));
-    }).catch(() => null).finally(() => setLoading(false));
+    listUsers().then(setUsers).catch((error) => {
+      alert(error.response?.data?.message || "Users could not be loaded from MongoDB.");
+    }).finally(() => setLoading(false));
   }, []);
 
   function saveUsers(nextUsers) {
     setUsers(nextUsers);
-    localStorage.setItem("cta_admin_users", JSON.stringify(nextUsers));
   }
 
   async function saveUser(user) {
@@ -1008,10 +994,10 @@ function UsersSimple() {
     try {
       await resetUserPassword(user.id, nextPassword);
       saveUsers(users.map((item) => item.id === user.id ? { ...item, password: "" } : item));
-    } catch (_error) {
-      localStorage.setItem(`cta_demo_password_${user.email}`, nextPassword);
+      alert(`Password reset for ${user.name}`);
+    } catch (error) {
+      alert(error.response?.data?.message || "Password could not be reset in MongoDB.");
     }
-    alert(`Password reset for ${user.name}`);
   }
 
   async function toggleStatus(user) {
@@ -1049,20 +1035,18 @@ function UsersSimple() {
 }
 
 function DepartmentsSimple({ records }) {
-  const [departments, setDepartments] = useState(() => readAdminStore("cta_admin_departments", initialDepartments));
+  const [departments, setDepartments] = useState([]);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    listDepartments().then((data) => {
-      setDepartments(data);
-      localStorage.setItem("cta_admin_departments", JSON.stringify(data));
-    }).catch(() => null).finally(() => setLoading(false));
+    listDepartments().then(setDepartments).catch((error) => {
+      alert(error.response?.data?.message || "Departments could not be loaded from MongoDB.");
+    }).finally(() => setLoading(false));
   }, []);
 
   function saveDepartments(nextDepartments) {
     setDepartments(nextDepartments);
-    localStorage.setItem("cta_admin_departments", JSON.stringify(nextDepartments));
   }
 
   async function saveDepartment(department) {
@@ -1179,8 +1163,8 @@ function DepartmentEditModal({ department, onClose, onSave }) {
 
 function Modal({ title, children, onClose }) {
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <div className="modal">
+    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="modal" onClick={(event) => event.stopPropagation()}>
         <div className="modal-head"><h2>{title}</h2><button className="ghost" onClick={onClose}>Close</button></div>
         {children}
       </div>

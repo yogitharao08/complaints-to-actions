@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { demoComplaints, demoDepartments, demoStatusLogs, demoUsers } from "../seed/demoData.js";
+import { demoComplaints, demoDepartments, demoNotifications, demoStatusLogs, demoUsers } from "../seed/demoData.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,6 +10,7 @@ const complaintsFile = path.join(dataDir, "complaints.json");
 const statusLogsFile = path.join(dataDir, "statusLogs.json");
 const usersFile = path.join(dataDir, "users.json");
 const departmentsFile = path.join(dataDir, "departments.json");
+const notificationsFile = path.join(dataDir, "notifications.json");
 
 function ensureDataDir() {
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
@@ -68,5 +69,21 @@ export function getStoredDepartments() {
 
 export function saveStoredDepartments(records) {
   writeJson(departmentsFile, records);
+  return records;
+}
+
+export function getStoredNotifications() {
+  const records = readJson(notificationsFile, demoNotifications);
+  const existingIds = new Set(records.map((item) => item._id));
+  const missingDemoNotifications = demoNotifications.filter((item) => !existingIds.has(item._id));
+  if (missingDemoNotifications.length === 0) return records;
+
+  const nextRecords = [...records, ...structuredClone(missingDemoNotifications)];
+  writeJson(notificationsFile, nextRecords);
+  return nextRecords;
+}
+
+export function saveStoredNotifications(records) {
+  writeJson(notificationsFile, records);
   return records;
 }

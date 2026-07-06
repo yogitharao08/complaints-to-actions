@@ -1,5 +1,4 @@
 import axios from "axios";
-import { complaints as seedComplaints, departments as seedDepartments } from "./demoData.js";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api"
@@ -12,15 +11,6 @@ api.interceptors.request.use((config) => {
 });
 
 export async function login(identifier, password, role) {
-  const demoPassword = localStorage.getItem(`cta_demo_password_${String(identifier).toLowerCase()}`);
-  if (demoPassword) {
-    if (demoPassword !== password) throw new Error("Invalid credentials");
-    const demoUser = { id: `demo-${role}`, name: role === "admin" ? "Admin User" : role === "officer" ? "Officer User" : "Citizen User", email: identifier, role };
-    localStorage.setItem("cta_user", JSON.stringify(demoUser));
-    localStorage.setItem("cta_token", `demo-${role}`);
-    return demoUser;
-  }
-
   const { data } = await api.post("/auth/login", { identifier, password, role });
   localStorage.setItem("cta_token", data.token);
   localStorage.setItem("cta_user", JSON.stringify(data.user));
@@ -44,71 +34,30 @@ export async function verifyCitizenRegistration(email, otp) {
   return data.user;
 }
 
-export function changeLocalPassword(user, currentPassword, nextPassword) {
-  const localUsers = JSON.parse(localStorage.getItem("cta_registered_users") || "[]");
-  const index = localUsers.findIndex((item) => item.email === user?.email);
-
-  if (index === -1) {
-    if (currentPassword !== "password") throw new Error("Current password is incorrect for demo account.");
-    localStorage.setItem(`cta_demo_password_${user.email}`, nextPassword);
-    return;
-  }
-
-  if (localUsers[index].password !== currentPassword) throw new Error("Current password is incorrect.");
-  localUsers[index].password = nextPassword;
-  localStorage.setItem("cta_registered_users", JSON.stringify(localUsers));
-}
-
-const STORAGE_KEY = "cta_complaints";
-
-function routeComplaint(category = "") {
-  const value = category.toLowerCase();
-  if (value.includes("road") || value.includes("pothole")) return { departmentId: "dept-roads", officer: "Officer Sharma" };
-  if (value.includes("water") || value.includes("leak")) return { departmentId: "dept-water", officer: "Water Supply Queue" };
-  if (value.includes("sanitation") || value.includes("garbage") || value.includes("dumping")) return { departmentId: "dept-sanitation", officer: "Sanitation Queue" };
-  if (value.includes("electricity") || value.includes("light")) return { departmentId: "dept-electricity", officer: "Electricity Queue" };
-  return { departmentId: "dept-general", officer: "Intake Queue" };
-}
-
-function readLocalComplaints() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  const records = stored ? JSON.parse(stored) : seedComplaints;
-  const normalized = records.map((item) => {
-    if (item.departmentId && item.officer) return item;
-    const routing = routeComplaint(item.category);
-    return { ...item, departmentId: item.departmentId || routing.departmentId, officer: item.officer === "Pending assignment" || !item.officer ? routing.officer : item.officer };
+export async function updateCurrentUser(profile) {
+  const { data } = await api.patch("/users/me", {
+    name: profile.name,
+    email: profile.email,
+    mobile: profile.mobile
   });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-  return normalized;
+  const current = getStoredUser() || {};
+  const nextUser = { ...current, ...data };
+  localStorage.setItem("cta_user", JSON.stringify(nextUser));
+  return nextUser;
 }
 
-function writeLocalComplaints(records) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  return records;
+export async function changeLocalPassword(_user, currentPassword, nextPassword) {
+  await api.patch("/users/me/password", { currentPassword, nextPassword });
 }
 
 export async function listComplaints(filters = {}) {
-  try {
-    const { data } = await api.get("/complaints", { params: filters });
-    return data.map(fromApiComplaint);
-  } catch (_error) {
-    const search = (filters.search || "").toLowerCase();
-    return visibleLocalComplaints().filter((item) => {
-      if (filters.status && item.status !== filters.status) return false;
-      if (filters.category && item.category !== filters.category) return false;
-      if (search && !`${item.id} ${item.title} ${item.location} ${item.citizen}`.toLowerCase().includes(search)) return false;
-      return true;
-    });
-  }
+  const { data } = await api.get("/complaints", { params: filters });
+  return data.map(fromApiComplaint);
 }
 
 export async function getComplaintDetail(id) {
-  try {
-    const { data } = await api.get(`/complaints/${id}`);
-    return fromApiComplaint(data);
-  } catch (_error) {
-    return visibleLocalComplaints().find((item) => item.id === id || item._id === id);
-  }
+  const { data } = await api.get(`/complaints/${id}`);
+  return fromApiComplaint(data);
 }
 
 export async function createComplaint(payload) {
@@ -131,24 +80,8 @@ export async function uploadFile(file) {
 }
 
 export async function updateComplaintStatus(id, status, comment = "", proofUrls = []) {
-  try {
-    const { data } = await api.patch(`/complaints/${id}/status`, { status, comment, proofUrls });
-    return fromApiComplaint(data);
-  } catch (_error) {
-    const records = readLocalComplaints();
-    const updated = records.map((item) => {
-      if (item.id !== id) return item;
-      return {
-        ...item,
-        status,
-        sla: status === "Resolved" || status === "Closed" ? "Completed" : item.sla,
-        proofUrls: [...(item.proofUrls || []), ...proofUrls],
-        timeline: [...(item.timeline || []), [status, comment || "Status updated just now"]]
-      };
-    });
-    writeLocalComplaints(updated);
-    return updated.find((item) => item.id === id);
-  }
+  const { data } = await api.patch(`/complaints/${id}/status`, { status, comment, proofUrls });
+  return fromApiComplaint(data);
 }
 
 export async function updateComplaintAssignment(id, departmentId, assignedOfficerId, comment = "") {
@@ -161,32 +94,18 @@ export async function updateComplaintAssignment(id, departmentId, assignedOffice
 }
 
 export async function reopenComplaint(id, reason) {
-  try {
-    const { data } = await api.post(`/complaints/${id}/reopen`, { reason });
-    return fromApiComplaint(data);
-  } catch (_error) {
-    return updateComplaintStatus(id, "Reopened", reason || "Citizen requested reopening.");
-  }
+  const { data } = await api.post(`/complaints/${id}/reopen`, { reason });
+  return fromApiComplaint(data);
 }
 
 export async function submitFeedback(id, rating, feedbackText) {
-  try {
-    const { data } = await api.post(`/complaints/${id}/feedback`, { rating, feedbackText });
-    return fromApiComplaint(data);
-  } catch (_error) {
-    const updated = readLocalComplaints().map((item) => item.id === id ? { ...item, rating, feedbackText } : item);
-    writeLocalComplaints(updated);
-    return updated.find((item) => item.id === id);
-  }
+  const { data } = await api.post(`/complaints/${id}/feedback`, { rating, feedbackText });
+  return fromApiComplaint(data);
 }
 
 export async function listDepartments() {
-  try {
-    const { data } = await api.get("/departments");
-    return data.map(fromApiDepartment);
-  } catch (_error) {
-    return seedDepartments.map(fromApiDepartment);
-  }
+  const { data } = await api.get("/departments");
+  return data.map(fromApiDepartment);
 }
 
 export async function saveDepartmentRecord(department) {
@@ -238,22 +157,8 @@ export async function markNotificationRead(id) {
 }
 
 export async function getReportOverview() {
-  try {
-    const { data } = await api.get("/reports/overview");
-    return data;
-  } catch (_error) {
-    const records = readLocalComplaints();
-    const resolved = records.filter((item) => ["Resolved", "Closed"].includes(item.status)).length;
-    return {
-      total: records.length,
-      resolutionRate: records.length ? Math.round((resolved / records.length) * 100) : 0,
-      escalated: records.filter((item) => item.status === "Escalated").length,
-      reopened: records.filter((item) => item.status === "Reopened").length,
-      averageResponseHours: 6.8,
-      byDepartment: seedDepartments,
-      hotspots: []
-    };
-  }
+  const { data } = await api.get("/reports/overview");
+  return data;
 }
 
 function fromApiComplaint(item) {
@@ -347,26 +252,6 @@ function formatSla(date, status) {
   if (!date) return "Pending";
   const hours = Math.ceil((new Date(date).getTime() - Date.now()) / 36e5);
   return hours <= 0 ? "Expired" : `${hours}h remaining`;
-}
-
-function visibleLocalComplaints() {
-  const user = getStoredUser();
-  const records = readLocalComplaints();
-
-  if (!user) return records;
-  if (user.role === "admin") return records;
-  if (user.role === "officer") {
-    return records.filter((item) => item.departmentId === user.departmentId || item.assignedOfficerId === user.id);
-  }
-
-  if (user.role === "citizen") {
-    if (user.email === "citizen@cta.test" || user.id === "user-citizen") {
-      return records.filter((item) => !item.citizenId || item.citizenId === "user-citizen" || item.citizen === "James Walker");
-    }
-    return records.filter((item) => item.citizenId === user.id || item.citizen === user.name || item.citizen === user.email);
-  }
-
-  return [];
 }
 
 export function getStoredUser() {

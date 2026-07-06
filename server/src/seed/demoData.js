@@ -107,7 +107,11 @@ export const demoStatusLogs = [
 
 export const demoNotifications = [
   { _id: "note-1", userId: "user-citizen", complaintId: "cmp-8842", type: "status", title: "Complaint in progress", message: "Public Roads has started field verification.", isRead: false, createdAt: "2026-05-20T07:30:00.000Z" },
-  { _id: "note-2", userId: "user-admin", complaintId: "cmp-6621", type: "escalation", title: "SLA breach", message: "Critical water leakage has crossed SLA and was escalated.", isRead: false, createdAt: "2026-05-20T06:15:00.000Z" }
+  { _id: "note-2", userId: "officer-roads", complaintId: "cmp-8842", type: "assignment", title: "Road complaint assigned", message: "CTA-2026-000123 is assigned to Public Roads for field verification.", isRead: false, createdAt: "2026-05-19T13:45:00.000Z" },
+  { _id: "note-3", userId: "officer-water", complaintId: "cmp-6621", type: "escalation", title: "Critical leak escalated", message: "CTA-2026-000126 has crossed SLA and needs an urgent water officer update.", isRead: false, createdAt: "2026-05-20T06:15:00.000Z" },
+  { _id: "note-4", userId: "officer-sanitation", complaintId: "cmp-9122", type: "assignment", title: "Sanitation complaint assigned", message: "CTA-2026-000125 is waiting in your sanitation queue.", isRead: false, createdAt: "2026-05-20T05:40:00.000Z" },
+  { _id: "note-5", userId: "officer-electricity", complaintId: "cmp-7510", type: "resolved", title: "Streetlight proof uploaded", message: "CTA-2026-000124 was resolved with repair proof attached.", isRead: true, createdAt: "2026-05-18T15:20:00.000Z" },
+  { _id: "note-6", userId: "user-admin", complaintId: "cmp-6621", type: "escalation", title: "SLA breach", message: "Critical water leakage has crossed SLA and was escalated.", isRead: false, createdAt: "2026-05-20T06:15:00.000Z" }
 ];
 
 export function nextComplaintId(count) {

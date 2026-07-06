@@ -45,8 +45,10 @@ app.use((err, _req, res, _next) => {
 
 connectDb().then(async () => {
   if (isDbConnected()) await seedMongo();
-}).finally(() => {
   app.listen(port, () => {
     console.log(`Complaint to Action API listening on http://localhost:${port}`);
   });
+}).catch((error) => {
+  console.error(error.message);
+  process.exit(1);
 });

@@ -44,6 +44,8 @@
   --warning-text: #ffdcc6;
   --danger-row-bg: rgba(147, 0, 10, 0.15);
   --modal-backdrop: rgba(6, 14, 32, 0.8);
+  --modal-surface: #171f33;
+  --modal-surface-low: #131b2e;
   --font-body: "Segoe UI", "Public Sans", system-ui, sans-serif;
   --font-heading: "Segoe UI", "Hanken Grotesk", system-ui, sans-serif;
   font-family: var(--font-body);
@@ -117,6 +119,8 @@
   --warning-text: #783200;
   --danger-row-bg: rgba(186, 26, 26, 0.05);
   --modal-backdrop: rgba(21, 28, 39, 0.5);
+  --modal-surface: #ffffff;
+  --modal-surface-low: #f0f3ff;
   --font-body: "Segoe UI", Inter, system-ui, sans-serif;
   --font-heading: "Segoe UI", Inter, system-ui, sans-serif;
   color-scheme: light;
@@ -1041,6 +1045,7 @@ progress { width: 100%; height: 12px; accent-color: var(--primary); }
   position: fixed;
   inset: 0;
   background: var(--modal-backdrop);
+  backdrop-filter: blur(3px);
   display: grid;
   place-items: center;
   padding: 20px;
@@ -1050,16 +1055,20 @@ progress { width: 100%; height: 12px; accent-color: var(--primary); }
   width: min(760px, 100%);
   max-height: calc(100vh - 40px);
   overflow: auto;
-  background: var(--surface);
+  scrollbar-width: none;
+  background: var(--modal-surface);
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: 0 24px 80px var(--shadow-strong);
+}
+.modal::-webkit-scrollbar {
+  display: none;
 }
 .modal-head {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--surface);
+  background: var(--modal-surface);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1080,6 +1089,33 @@ progress { width: 100%; height: 12px; accent-color: var(--primary); }
 }
 .detail-modal h2, .detail-modal h3 { margin: 0; }
 .detail-modal > p { margin: 0; color: var(--muted); line-height: 1.6; }
+.modal .info-grid,
+.modal .update-item,
+.modal .proof-item,
+.modal .proof-link,
+.modal .proof-list a,
+.modal .citizen-verification,
+.modal .proof-upload {
+  background: var(--modal-surface-low);
+}
+.modal .info-grid {
+  border-top: 0;
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.modal .info-grid p {
+  margin-bottom: 0;
+}
+.modal input,
+.modal select,
+.modal textarea {
+  background: var(--modal-surface-low);
+}
+.modal input:focus,
+.modal select:focus,
+.modal textarea:focus {
+  background: var(--modal-surface);
+}
 .timeline.compact { margin-top: 0; gap: 14px; }
 .mini-form {
   display: grid;

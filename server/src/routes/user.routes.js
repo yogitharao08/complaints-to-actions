@@ -27,6 +27,58 @@ router.get("/", requireAuth, allowRoles("admin"), async (_req, res) => {
   res.json(users.map(publicUser));
 });
 
+router.patch("/me", requireAuth, async (req, res) => {
+  const updates = {
+    name: req.body.name,
+    email: req.body.email ? String(req.body.email).toLowerCase() : undefined,
+    mobile: req.body.mobile
+  };
+  Object.keys(updates).forEach((key) => updates[key] === undefined && delete updates[key]);
+
+  if (isDbConnected()) {
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
+    if (!user) return res.status(404).json({ message: "User not found." });
+    return res.json(publicUser(user));
+  }
+
+  const users = getStoredUsers();
+  const index = users.findIndex((item) => item._id === req.user._id);
+  if (index === -1) return res.status(404).json({ message: "User not found." });
+  users[index] = { ...users[index], ...updates, updatedAt: new Date().toISOString() };
+  saveStoredUsers(users);
+  res.json(publicUser(users[index]));
+});
+
+router.patch("/me/password", requireAuth, async (req, res) => {
+  const { currentPassword, nextPassword } = req.body;
+  if (!currentPassword || !nextPassword) {
+    return res.status(400).json({ message: "Current password and new password are required." });
+  }
+
+  const user = isDbConnected()
+    ? await User.findById(req.user._id)
+    : getStoredUsers().find((item) => item._id === req.user._id);
+
+  if (!user) return res.status(404).json({ message: "User not found." });
+  if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
+    return res.status(400).json({ message: "Current password is incorrect." });
+  }
+
+  const passwordHash = await bcrypt.hash(nextPassword, 10);
+
+  if (isDbConnected()) {
+    await User.findByIdAndUpdate(req.user._id, { passwordHash });
+    return res.json({ ok: true });
+  }
+
+  const users = getStoredUsers();
+  const index = users.findIndex((item) => item._id === req.user._id);
+  users[index].passwordHash = passwordHash;
+  users[index].updatedAt = new Date().toISOString();
+  saveStoredUsers(users);
+  res.json({ ok: true });
+});
+
 router.post("/", requireAuth, allowRoles("admin"), async (req, res) => {
   const { name, email, mobile, role, departmentId, password = "password" } = req.body;
   const normalizedEmail = String(email || "").toLowerCase();

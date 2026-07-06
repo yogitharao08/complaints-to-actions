@@ -1,6 +1,6 @@
 import express from "express";
 import { isDbConnected } from "../lib/db.js";
-import { getStoredComplaints, getStoredStatusLogs, saveStoredComplaints, saveStoredStatusLogs } from "../lib/fileStore.js";
+import { getStoredComplaints, getStoredNotifications, getStoredStatusLogs, getStoredUsers, saveStoredComplaints, saveStoredNotifications, saveStoredStatusLogs } from "../lib/fileStore.js";
 import { requireAuth } from "../middleware/auth.js";
 import { Complaint } from "../models/Complaint.js";
 import { Notification } from "../models/Notification.js";
@@ -48,8 +48,8 @@ function normalizeComplaintRouting(records) {
   const normalized = records.map((item) => {
     const routing = routeComplaint(item.category);
     const departmentId = item.departmentId || routing.departmentId;
-    const assignedOfficerId = item.assignedOfficerId || defaultOfficerByDepartment[departmentId] || routing.officerId;
-    const status = item.status === "Submitted" && departmentId ? "Assigned" : item.status;
+    const assignedOfficerId = item.assignedOfficerId;
+    const status = item.status;
 
     if (departmentId !== item.departmentId || assignedOfficerId !== item.assignedOfficerId || status !== item.status) changed = true;
     return { ...item, departmentId, assignedOfficerId, status };
@@ -68,21 +68,36 @@ function visibleComplaints(user, records) {
 }
 
 async function createNotification(userId, complaintId, type, title, message) {
-  if (!isDbConnected() || !userId) return;
-  await Notification.create({
+  if (!userId) return;
+  const notification = {
     _id: `note-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     userId,
     complaintId,
     type,
     title,
-    message
-  });
+    message,
+    isRead: false,
+    createdAt: new Date().toISOString()
+  };
+
+  if (isDbConnected()) {
+    await Notification.create(notification);
+    return;
+  }
+
+  saveStoredNotifications([notification, ...getStoredNotifications()]);
 }
 
 async function notifyAdmins(complaintId, type, title, message) {
-  if (!isDbConnected()) return;
-  const admins = await User.find({ role: "admin", isActive: true }).select("_id").lean();
+  const admins = isDbConnected()
+    ? await User.find({ role: "admin", isActive: true }).select("_id").lean()
+    : getStoredUsers().filter((user) => user.role === "admin" && user.isActive !== false);
   await Promise.all(admins.map((admin) => createNotification(admin._id, complaintId, type, title, message)));
+}
+
+function notificationMessage(prefix, complaint, detail) {
+  const text = String(detail || "").trim();
+  return text ? `${complaint.complaintId}: ${prefix} - ${text}` : `${complaint.complaintId}: ${prefix}`;
 }
 
 router.get("/", requireAuth, async (req, res) => {
@@ -111,16 +126,17 @@ router.post("/", requireAuth, async (req, res) => {
     complaintId: nextComplaintId(complaintCount + 1),
     citizenId: req.user._id,
     createdByRole: req.user.role,
-    status: "Assigned",
+    status: "Submitted",
     departmentId: req.body.departmentId || routing.departmentId,
-    assignedOfficerId: req.body.assignedOfficerId || routing.officerId,
+    assignedOfficerId: req.body.assignedOfficerId,
     slaDueAt: new Date(Date.now() + slaHours(req.body.category, req.body.severity) * 60 * 60 * 1000)
   };
+  const notificationOfficerId = payload.assignedOfficerId || defaultOfficerByDepartment[payload.departmentId] || routing.officerId;
 
   if (isDbConnected()) {
     const complaint = await Complaint.create(payload);
     await StatusLog.create({ complaintId: complaint._id, newStatus: "Submitted", changedByUserId: req.user._id, changedByRole: req.user.role, comment: "Complaint filed." });
-    await createNotification(complaint.assignedOfficerId, complaint._id, "assignment", "New complaint assigned", `${complaint.complaintId} was routed to your department.`);
+    await createNotification(notificationOfficerId, complaint._id, "citizen-info", "New citizen complaint", notificationMessage("Citizen filed a complaint", complaint, `${complaint.title}. ${complaint.description}`));
     await notifyAdmins(complaint._id, "complaint", "New complaint filed", `${complaint.complaintId} was filed under ${complaint.category}.`);
     return res.status(201).json(complaint);
   }
@@ -130,9 +146,10 @@ router.post("/", requireAuth, async (req, res) => {
   saveStoredComplaints([complaint, ...storedComplaints]);
   saveStoredStatusLogs([
     ...statusLogs,
-    { complaintId: complaint._id, newStatus: "Submitted", changedByRole: req.user.role, comment: "Complaint filed.", createdAt: complaint.createdAt },
-    { complaintId: complaint._id, previousStatus: "Submitted", newStatus: "Assigned", changedByRole: "system", comment: "Automatically routed to concerned department officer.", createdAt: complaint.createdAt }
+    { complaintId: complaint._id, newStatus: "Submitted", changedByRole: req.user.role, comment: "Complaint filed.", createdAt: complaint.createdAt }
   ]);
+  await createNotification(notificationOfficerId, complaint._id, "citizen-info", "New citizen complaint", notificationMessage("Citizen filed a complaint", complaint, `${complaint.title}. ${complaint.description}`));
+  await notifyAdmins(complaint._id, "complaint", "New complaint filed", `${complaint.complaintId} was filed under ${complaint.category}.`);
   res.status(201).json(complaint);
 });
 
@@ -187,14 +204,15 @@ router.patch("/:id/status", requireAuth, async (req, res) => {
 
     const previousStatus = complaint.status;
     complaint.status = status;
+    if (req.user.role === "officer" && status === "Assigned") complaint.assignedOfficerId = req.user._id;
     complaint.proofUrls.push(...proofUrls);
     if (status === "Resolved") complaint.resolvedAt = new Date();
     if (status === "Closed") complaint.closedAt = new Date();
     if (status === "Escalated") complaint.escalationCount += 1;
     await complaint.save();
     await StatusLog.create({ complaintId: complaint._id, previousStatus, newStatus: status, changedByUserId: req.user._id, changedByRole: req.user.role, comment, attachments: proofUrls });
-    if (complaint.citizenId) {
-      await createNotification(complaint.citizenId, complaint._id, "status", `Complaint ${status}`, `${complaint.complaintId} is now ${status}.`);
+    if (req.user.role === "officer" && complaint.citizenId) {
+      await createNotification(complaint.citizenId, complaint._id, "officer-info", `Officer update: ${status}`, notificationMessage(`Officer marked complaint as ${status}`, complaint, comment));
     }
     if (status === "Escalated") {
       await notifyAdmins(complaint._id, "escalation", "Complaint escalated", `${complaint.complaintId} needs admin attention.`);
@@ -207,12 +225,19 @@ router.patch("/:id/status", requireAuth, async (req, res) => {
   if (!complaint) return res.status(404).json({ message: "Complaint not found" });
   const previousStatus = complaint.status;
   complaint.status = status;
+  if (req.user.role === "officer" && status === "Assigned") complaint.assignedOfficerId = req.user._id;
   complaint.proofUrls = [...(complaint.proofUrls || []), ...proofUrls];
   complaint.updatedAt = new Date().toISOString();
   if (status === "Escalated") complaint.escalationCount += 1;
   const statusLogs = getStoredStatusLogs();
   saveStoredComplaints(storedComplaints);
   saveStoredStatusLogs([...statusLogs, { complaintId: complaint._id, previousStatus, newStatus: status, changedByRole: req.user.role, comment, attachments: proofUrls, createdAt: complaint.updatedAt }]);
+  if (req.user.role === "officer" && complaint.citizenId) {
+    await createNotification(complaint.citizenId, complaint._id, "officer-info", `Officer update: ${status}`, notificationMessage(`Officer marked complaint as ${status}`, complaint, comment));
+  }
+  if (status === "Escalated") {
+    await notifyAdmins(complaint._id, "escalation", "Complaint escalated", `${complaint.complaintId} needs admin attention.`);
+  }
   res.json(complaint);
 });
 
@@ -234,7 +259,7 @@ router.post("/:id/reopen", requireAuth, async (req, res) => {
       comment: req.body.reason || "Citizen requested reopening.",
       attachments: req.body.attachmentUrls || []
     });
-    await createNotification(complaint.assignedOfficerId, complaint._id, "reopen", "Complaint reopened", `${complaint.complaintId} was reopened by the citizen.`);
+    await createNotification(complaint.assignedOfficerId, complaint._id, "citizen-info", "Citizen reopened complaint", notificationMessage("Citizen reopened the complaint", complaint, req.body.reason || "Citizen requested reopening."));
     await notifyAdmins(complaint._id, "reopen", "Complaint reopened", `${complaint.complaintId} was reopened by the citizen.`);
     return res.json(complaint);
   }
@@ -257,6 +282,8 @@ router.post("/:id/reopen", requireAuth, async (req, res) => {
     attachments: req.body.attachmentUrls || [],
     createdAt: complaint.updatedAt
   }]);
+  await createNotification(complaint.assignedOfficerId, complaint._id, "citizen-info", "Citizen reopened complaint", notificationMessage("Citizen reopened the complaint", complaint, req.body.reason || "Citizen requested reopening."));
+  await notifyAdmins(complaint._id, "reopen", "Complaint reopened", `${complaint.complaintId} was reopened by the citizen.`);
   res.json(complaint);
 });
 
@@ -269,11 +296,15 @@ router.post("/:id/feedback", requireAuth, async (req, res) => {
       { rating: req.body.rating, feedbackText: req.body.feedbackText },
       { new: true }
     );
+    if (updated?.assignedOfficerId) {
+      await createNotification(updated.assignedOfficerId, updated._id, "citizen-info", "Citizen feedback received", notificationMessage(`Citizen rated the resolution ${req.body.rating || "without a rating"}`, updated, req.body.feedbackText));
+    }
     return res.json(updated);
   }
   complaint.rating = req.body.rating;
   complaint.feedbackText = req.body.feedbackText;
   saveStoredComplaints(storedComplaints);
+  await createNotification(complaint.assignedOfficerId, complaint._id, "citizen-info", "Citizen feedback received", notificationMessage(`Citizen rated the resolution ${req.body.rating || "without a rating"}`, complaint, req.body.feedbackText));
   res.json(complaint);
 });
 
