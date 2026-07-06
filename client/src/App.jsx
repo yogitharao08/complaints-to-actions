@@ -373,10 +373,27 @@ function Shell({ role, active, setActive, children, onExit, theme, onThemeChange
               <div className="header-notification-panel">
                 <div className="panel-header">
                   <h3>Notifications</h3>
+                  {unreadCount > 0 && (
+                    <button
+                      className="mark-all-read-btn"
+                      onClick={async () => {
+                        const unreadNotes = notifications.filter((n) => !n.isRead);
+                        await Promise.all(
+                          unreadNotes.map((n) => markNotificationRead(n._id || n.id).catch(() => null))
+                        );
+                        setNotifications((items) =>
+                          items.map((item) => ({ ...item, isRead: true }))
+                        );
+                      }}
+                      type="button"
+                    >
+                      Mark all as read
+                    </button>
+                  )}
                 </div>
                 <div className="panel-content">
                   {notifications.length === 0 && <p className="empty-text">No notifications yet.</p>}
-                  {notifications.slice(0, 5).map((note) => (
+                  {notifications.map((note) => (
                     <button
                       className={note.isRead ? "notification-item" : "notification-item unread"}
                       key={note._id || note.id}
