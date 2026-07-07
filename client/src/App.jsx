@@ -444,17 +444,6 @@ function Shell({ role, active, setActive, children, onExit, theme, onThemeChange
                   <UserRound size={14} />
                   <span>View Profile</span>
                 </button>
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setActive("Profile");
-                    setShowProfileMenu(false);
-                  }}
-                  type="button"
-                >
-                  <FileText size={14} />
-                  <span>Edit Profile</span>
-                </button>
                 <div className="profile-dropdown-divider"></div>
                 <button
                   className="dropdown-item logout"
