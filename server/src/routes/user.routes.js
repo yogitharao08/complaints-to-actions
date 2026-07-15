@@ -1,9 +1,10 @@
 import bcrypt from "bcryptjs";
 import express from "express";
 import { isDbConnected } from "../lib/db.js";
-import { getStoredUsers, saveStoredUsers } from "../lib/fileStore.js";
+import { getStoredUsers, saveStoredUsers, getStoredNotifications, saveStoredNotifications } from "../lib/fileStore.js";
 import { allowRoles, requireAuth } from "../middleware/auth.js";
 import { User } from "../models/User.js";
+import { Notification } from "../models/Notification.js";
 
 const router = express.Router();
 
@@ -151,6 +152,50 @@ router.patch("/:id/password", requireAuth, allowRoles("admin"), async (req, res)
   users[index].passwordHash = passwordHash;
   users[index].updatedAt = new Date().toISOString();
   saveStoredUsers(users);
+  res.json({ ok: true });
+});
+
+router.delete("/me", requireAuth, async (req, res) => {
+  const userId = req.user._id;
+
+  if (isDbConnected()) {
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+    await Notification.deleteMany({ userId });
+    return res.json({ ok: true });
+  }
+
+  const users = getStoredUsers();
+  const index = users.findIndex((item) => item._id === userId);
+  if (index === -1) return res.status(404).json({ message: "User not found." });
+  users.splice(index, 1);
+  saveStoredUsers(users);
+
+  const notifications = getStoredNotifications().filter((n) => n.userId !== userId);
+  saveStoredNotifications(notifications);
+
+  res.json({ ok: true });
+});
+
+router.delete("/:id", requireAuth, allowRoles("admin"), async (req, res) => {
+  const userId = req.params.id;
+
+  if (isDbConnected()) {
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+    await Notification.deleteMany({ userId });
+    return res.json({ ok: true });
+  }
+
+  const users = getStoredUsers();
+  const index = users.findIndex((item) => item._id === userId);
+  if (index === -1) return res.status(404).json({ message: "User not found." });
+  users.splice(index, 1);
+  saveStoredUsers(users);
+
+  const notifications = getStoredNotifications().filter((n) => n.userId !== userId);
+  saveStoredNotifications(notifications);
+
   res.json({ ok: true });
 });
 

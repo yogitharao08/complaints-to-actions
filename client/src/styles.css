@@ -459,7 +459,7 @@ input, select {
 }
 input:focus, select:focus { outline: 2px solid var(--focus-ring); border-color: var(--primary); }
 
-.primary, .outline, .soft, .ghost, .link, .icon-btn {
+.primary, .outline, .soft, .ghost, .link, .icon-btn, .danger-btn {
   min-height: 42px;
   border-radius: 6px;
   border: 0;
@@ -1809,4 +1809,110 @@ progress { width: 100%; height: 12px; accent-color: var(--primary); }
     grid-template-columns: 1fr;
     gap: 12px;
   }
+}
+
+/* Custom OTP Verification UI Styles */
+.otp-container {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.otp-box {
+  flex: 1;
+  height: 58px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--surface);
+  transition: all 0.2s ease-in-out;
+}
+
+.otp-box.focused {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+  background: var(--surface-mid);
+}
+
+.otp-box.filled {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.otp-hidden-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Danger Zone and Deletion UI Styles */
+.danger-zone-container {
+  margin-top: 32px;
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  padding: 24px;
+  background: rgba(255, 180, 171, 0.04);
+  text-align: left;
+}
+
+.danger-zone-container h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.danger-zone-container p {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.danger-btn {
+  background: var(--danger);
+  color: #06071d;
+  border: 0;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.danger-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 12px rgba(255, 180, 171, 0.25);
+}
+
+.outline.danger-btn {
+  background: transparent;
+  color: var(--danger);
+  border: 2px solid var(--danger);
+}
+
+.outline.danger-btn:hover {
+  background: var(--danger);
+  color: #06071d;
+}
+
+:root[data-theme="light"] .danger-btn,
+:root[data-theme="light"] .outline.danger-btn:hover {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .outline.danger-btn {
+  color: var(--danger);
+}
+
+:root[data-theme="light"] .danger-zone-container {
+  background: rgba(186, 26, 26, 0.04);
 }

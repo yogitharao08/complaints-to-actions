@@ -94,6 +94,7 @@ export async function registerLocalAccount(payload) {
     name: payload.name,
     email: payload.email,
     mobile: payload.mobile,
+    address: payload.address,
     password: payload.password
   });
   return data;
@@ -121,6 +122,14 @@ export async function updateCurrentUser(profile) {
 
 export async function changeLocalPassword(_user, currentPassword, nextPassword) {
   await api.patch("/users/me/password", { currentPassword, nextPassword });
+}
+
+export async function deleteCurrentUser() {
+  await api.delete("/users/me");
+}
+
+export async function deleteUserRecord(id) {
+  await api.delete(`/users/${id}`);
 }
 
 export async function listComplaints(filters = {}) {

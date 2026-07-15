@@ -25,6 +25,8 @@ import {
 import {
   createComplaint,
   changeLocalPassword,
+  deleteCurrentUser,
+  deleteUserRecord,
   getComplaintDetail,
   getReportOverview,
   getStoredUser,
@@ -180,11 +182,27 @@ function LoginPage({ setUser, theme, onThemeChange }) {
   const [identifier, setIdentifier] = useState("citizen@cta.test");
   const [password, setPassword] = useState("password");
   const [creating, setCreating] = useState(false);
-  const [newAccount, setNewAccount] = useState({ name: "", email: "", password: "", role: "citizen" });
+  const [newAccount, setNewAccount] = useState({ name: "", email: "", mobile: "", address: "", password: "", role: "citizen" });
   const [registrationOtp, setRegistrationOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(600);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!otpSent) return;
+    setTimeLeft(600);
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpSent]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
 
   async function submit(event) {
     event.preventDefault();
@@ -253,10 +271,43 @@ function LoginPage({ setUser, theme, onThemeChange }) {
           <>
             <label>Name<input required value={newAccount.name} onChange={(event) => setNewAccount({ ...newAccount, name: event.target.value })} /></label>
             <label>Email<input required type="email" value={newAccount.email} onChange={(event) => setNewAccount({ ...newAccount, email: event.target.value })} /></label>
+            <label>Mobile Number (Optional)<input type="tel" value={newAccount.mobile} onChange={(event) => setNewAccount({ ...newAccount, mobile: event.target.value })} /></label>
+            <label>Address (Optional)<input value={newAccount.address} onChange={(event) => setNewAccount({ ...newAccount, address: event.target.value })} /></label>
             <label>Password<input required type="password" value={newAccount.password} onChange={(event) => setNewAccount({ ...newAccount, password: event.target.value })} /></label>
           </>
         )}
-        {otpSent && <label>OTP<input required inputMode="numeric" maxLength="6" value={registrationOtp} onChange={(event) => setRegistrationOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} /></label>}
+        {otpSent && (
+          <label style={{ display: "grid", gap: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Verification OTP</span>
+              <span className="otp-expiry-note" style={{ fontSize: "12px", color: timeLeft > 0 ? "var(--muted)" : "var(--danger)", fontWeight: "normal" }}>
+                {timeLeft > 0 ? `Expires in ${formatTime(timeLeft)}` : "Expired"}
+              </span>
+            </div>
+            <div className="otp-container">
+              {[...Array(6)].map((_, i) => {
+                const char = registrationOtp[i] || "";
+                const isFocused = registrationOtp.length === i;
+                return (
+                  <div key={i} className={`otp-box ${char ? "filled" : ""} ${isFocused ? "focused" : ""}`}>
+                    {char}
+                  </div>
+                );
+              })}
+              <input
+                type="text"
+                pattern="\d*"
+                inputMode="numeric"
+                maxLength={6}
+                value={registrationOtp}
+                onChange={(event) => setRegistrationOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                className="otp-hidden-input"
+                autoFocus
+                required
+              />
+            </div>
+          </label>
+        )}
         <input type="hidden" value="citizen" readOnly />
         <p className="form-note">Public registration is only for citizens. Officer and admin accounts are created by an administrator.</p>
         <button className="primary full" disabled={busy} type="submit">{busy ? "Please wait..." : otpSent ? "Verify & Continue" : "Send OTP"}</button>
@@ -265,6 +316,7 @@ function LoginPage({ setUser, theme, onThemeChange }) {
           try {
             const registration = await registerLocalAccount(newAccount);
             setRegistrationOtp("");
+            setTimeLeft(600);
             alert(registration.previewUrl ? `A new OTP has been sent. Ethereal preview: ${registration.previewUrl}` : "A new OTP has been sent.");
           } catch (error) {
             alert(error.response?.data?.message || error.message);
@@ -953,6 +1005,30 @@ function EditProfilePage({ user, role, setActive, onUserUpdate }) {
           <button className="primary" type="submit" disabled={saving}>{saving ? "Saving..." : "Save Profile"}</button>
         </div>
       </form>
+
+      <div className="danger-zone-container">
+        <h3>Danger Zone</h3>
+        <p>Permanently delete your account and all associated notifications. This action cannot be undone.</p>
+        <button
+          type="button"
+          className="danger-btn"
+          onClick={async () => {
+            if (window.confirm("Are you absolutely sure you want to delete your account? This action is permanent and cannot be undone.")) {
+              try {
+                await deleteCurrentUser();
+                alert("Your account has been deleted.");
+                localStorage.removeItem("cta_token");
+                localStorage.removeItem("cta_user");
+                window.dispatchEvent(new Event("cta_unauthorized"));
+              } catch (error) {
+                alert(error.response?.data?.message || "Profile could not be deleted.");
+              }
+            }
+          }}
+        >
+          Delete Account
+        </button>
+      </div>
     </section>
   );
 }
@@ -1219,6 +1295,23 @@ function UsersSimple() {
     await saveUser({ ...user, status: user.status === "Active" ? "Disabled" : "Active" });
   }
 
+  async function handleDeleteUser(userToDelete) {
+    const currentUser = getStoredUser();
+    if (userToDelete.id === currentUser?.id || userToDelete.id === currentUser?._id) {
+      alert("You cannot delete your own account from the user list. Please use the self-deletion option in your Profile page.");
+      return;
+    }
+    if (window.confirm(`Are you sure you want to permanently delete the user account for ${userToDelete.name}?`)) {
+      try {
+        await deleteUserRecord(userToDelete.id);
+        setUsers(users.filter((item) => item.id !== userToDelete.id));
+        alert("User account deleted successfully.");
+      } catch (error) {
+        alert(error.response?.data?.message || "User could not be deleted.");
+      }
+    }
+  }
+
   return (
     <section className="table-card page-panel">
       <div className="table-head"><h2>Users</h2><button className="primary" onClick={() => setEditing({ id: `new-user-${Date.now()}`, name: "", email: "", mobile: "", address: "", role: "Officer - Public Roads", departmentId: "dept-roads", scope: "Public Roads", status: "Active", password: "password" })}>Create User</button></div>
@@ -1238,6 +1331,7 @@ function UsersSimple() {
                   <button className="soft small" onClick={() => setEditing(user)}>Edit</button>
                   <button className="outline small" onClick={() => resetPassword(user)}>Reset Password</button>
                   <button className="soft small" onClick={() => toggleStatus(user)}>{user.status === "Active" ? "Disable" : "Activate"}</button>
+                  <button className="outline small danger-btn" onClick={() => handleDeleteUser(user)}>Delete</button>
                 </div>
               </td>
             </tr>
