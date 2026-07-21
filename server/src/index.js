@@ -22,7 +22,7 @@ const port = process.env.PORT || 5000;
 app.set("trust proxy", 1);
 
 const allowedOrigins = process.env.CLIENT_ORIGIN
-  ? process.env.CLIENT_ORIGIN.split(",").map((o) => o.trim())
+  ? process.env.CLIENT_ORIGIN.split(",").map((o) => o.trim().replace(/\/$/, ""))
   : [];
 
 app.use(helmet({
