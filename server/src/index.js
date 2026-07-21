@@ -6,7 +6,6 @@ import morgan from "morgan";
 import path from "path";
 import { connectDb } from "./lib/db.js";
 import { isDbConnected } from "./lib/db.js";
-import { seedMongo } from "./lib/seedMongo.js";
 import authRoutes from "./routes/auth.routes.js";
 import complaintRoutes from "./routes/complaint.routes.js";
 import departmentRoutes from "./routes/department.routes.js";
@@ -44,7 +43,6 @@ app.use((err, _req, res, _next) => {
 });
 
 connectDb().then(async () => {
-  if (isDbConnected()) await seedMongo();
   app.listen(port, () => {
     console.log(`Complaint to Action API listening on http://localhost:${port}`);
   });

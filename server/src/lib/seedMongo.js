@@ -11,9 +11,9 @@ function withoutManagedTimestamps(record) {
 }
 
 export async function seedMongo() {
-  await Promise.all(demoUsers.map((user) => User.updateOne({ _id: user._id }, { $setOnInsert: withoutManagedTimestamps(user) }, { upsert: true })));
-  await Promise.all(demoDepartments.map((department) => Department.updateOne({ _id: department._id }, { $setOnInsert: withoutManagedTimestamps(department) }, { upsert: true })));
-  await Promise.all(demoComplaints.map((complaint) => Complaint.updateOne({ _id: complaint._id }, { $setOnInsert: withoutManagedTimestamps(complaint) }, { upsert: true })));
+  await Promise.all(demoUsers.map((user) => User.updateOne({ _id: user._id }, { $set: withoutManagedTimestamps(user) }, { upsert: true })));
+  await Promise.all(demoDepartments.map((department) => Department.updateOne({ _id: department._id }, { $set: withoutManagedTimestamps(department) }, { upsert: true })));
+  await Promise.all(demoComplaints.map((complaint) => Complaint.updateOne({ _id: complaint._id }, { $set: withoutManagedTimestamps(complaint) }, { upsert: true })));
 
   if ((await StatusLog.countDocuments()) === 0) {
     await StatusLog.insertMany(demoStatusLogs);
