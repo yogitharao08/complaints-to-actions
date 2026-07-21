@@ -61,7 +61,7 @@ router.post("/login", async (req, res) => {
   res.cookie("cta_refresh_token", issueRefreshToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/api/auth",
     maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
   });
@@ -179,7 +179,7 @@ router.post("/register/verify", async (req, res) => {
     res.cookie("cta_refresh_token", issueRefreshToken(verifiedUser), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/api/auth",
       maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
     });
@@ -202,7 +202,7 @@ router.post("/register/verify", async (req, res) => {
   res.cookie("cta_refresh_token", issueRefreshToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/api/auth",
     maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
   });
@@ -246,7 +246,7 @@ router.post("/logout", (req, res) => {
   res.clearCookie("cta_refresh_token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/api/auth"
   });
   res.json({ message: "Logged out successfully" });

@@ -19,8 +19,30 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-app.use(cors());
+app.set("trust proxy", 1);
+
+const allowedOrigins = process.env.CLIENT_ORIGIN
+  ? process.env.CLIENT_ORIGIN.split(",").map((o) => o.trim())
+  : [];
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" }
+}));
+app.use(cors({
+  origin: (origin, callback) => {
+    // If no origin (e.g. server-to-server or postman), allow
+    if (!origin) return callback(null, true);
+    
+    // If CLIENT_ORIGIN is not configured, or the origin is explicitly allowed
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.resolve("uploads")));
